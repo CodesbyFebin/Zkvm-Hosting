@@ -144,3 +144,9 @@ welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and the PR checkl
 Found a soundness or security issue? Read [`SECURITY.md`](SECURITY.md) before filing a
 public issue. This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 See [`CHANGELOG.md`](CHANGELOG.md) for release history.
+
+## Funding
+
+Sponsorship, one-time crypto donations, and a list of real grant programs this
+project could reasonably apply to are at [`funding/`](funding) — or use the
+"Sponsor" button GitHub shows on this repo.
