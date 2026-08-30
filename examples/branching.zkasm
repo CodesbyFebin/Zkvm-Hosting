@@ -1,0 +1,11 @@
+# If (initial - 5) == 0, skip the multiply and just add 1.
+# Otherwise, multiply by 100 before adding 1.
+#
+# initial=5  => ((5-5)=0, jump taken)     => 0 + 1        = 1
+# initial=8  => ((8-5)=3, jump not taken) => (3 * 100) + 1 = 301
+INIT 5
+SUB 5
+JZ skip
+MUL 100
+skip:
+ADD 1

@@ -1,0 +1,9 @@
+# Stash the starting value in r0, add 100 to the accumulator, then bring the
+# original value back to prove the register file actually holds state across
+# other instructions (not just "the last thing computed").
+#
+# initial=7 => STORE r0 (r0=7), ADD 100 (acc=107), LOAD r0 (acc=7) => 7
+INIT 7
+STORE r0
+ADD 100
+LOAD r0

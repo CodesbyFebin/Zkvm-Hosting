@@ -1,0 +1,12 @@
+[package]
+name = "zkvm-stark"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "STARK arithmetization, prover, and verifier for zkvm-isa, built on Winterfell"
+
+[dependencies]
+zkvm-isa = { path = "../zkvm-isa" }
+winterfell = "0.13.1"
+winter-math = "0.13.1"

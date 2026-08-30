@@ -1,0 +1,64 @@
+name: ZK proof CI gate
+
+on:
+  pull_request:
+    paths:
+      - "examples/**.zkasm"
+      - "crates/**"
+      - "contracts/**"
+      - ".github/workflows/zk-ci.yml"
+
+jobs:
+  proof-gate:
+    name: Every example program proves and verifies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build workspace
+        run: cargo build --release --workspace
+
+      - name: Run unit and integration tests
+        run: cargo test --release --workspace
+
+      - name: Start zkvm-host-server
+        run: |
+          ./target/release/zkvm-host-server &
+          echo $! > /tmp/zkvm-host-server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:4477/healthz >/dev/null; then
+              echo "server is up"
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "::error::zkvm-host-server never became healthy"
+          exit 1
+
+      - name: Deploy and verify every example program
+        run: |
+          set -e
+          for f in examples/*.zkasm; do
+            echo "=== $f ==="
+            out="${f}.proof"
+            ./target/release/zkvm deploy "$f" --out "$out"
+            ./target/release/zkvm verify "$f" "$out"
+          done
+
+      - name: Stop zkvm-host-server
+        if: always()
+        run: kill "$(cat /tmp/zkvm-host-server.pid)" 2>/dev/null || true
+
+  contracts:
+    name: Solidity tests (forge)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: foundry-rs/foundry-toolchain@v1
+
+      - name: forge test
+        working-directory: contracts
+        run: forge test -vv

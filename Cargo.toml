@@ -1,0 +1,9 @@
+[workspace]
+resolver = "2"
+members = ["crates/zkvm-isa", "crates/zkvm-stark", "crates/zkvm-cli", "crates/zkvm-host-server"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/CodesbyFebin/Zkvm-Hosting"

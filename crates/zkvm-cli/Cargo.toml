@@ -1,0 +1,20 @@
+[package]
+name = "zkvm-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "zkvm command-line tool: run, prove, verify, and deploy .zkasm programs"
+
+[[bin]]
+name = "zkvm"
+path = "src/main.rs"
+
+[dependencies]
+zkvm-isa = { path = "../zkvm-isa" }
+zkvm-stark = { path = "../zkvm-stark" }
+winter-utils = "0.13.1"
+ureq = { version = "3.4", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.23"

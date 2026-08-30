@@ -1,0 +1,6 @@
+/target
+*.proof
+
+# contracts/ (Foundry)
+contracts/out/
+contracts/cache/

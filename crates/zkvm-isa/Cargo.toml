@@ -1,0 +1,10 @@
+[package]
+name = "zkvm-isa"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Instruction set and interpreter for a real STARK-provable accumulator-plus-registers zkVM"
+
+[dependencies]
+winter-math = "0.13.1"
