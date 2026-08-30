@@ -7,6 +7,13 @@ on:
       - "crates/**"
       - "contracts/**"
       - ".github/workflows/zk-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "examples/**.zkasm"
+      - "crates/**"
+      - "contracts/**"
+      - ".github/workflows/zk-ci.yml"
 
 jobs:
   proof-gate:
@@ -56,6 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true # contracts/lib/forge-std is a git submodule
 
       - uses: foundry-rs/foundry-toolchain@v1
 

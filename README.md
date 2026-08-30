@@ -1,5 +1,8 @@
 # zkVM (Phase 1 MVP)
 
+[![ZK proof CI gate](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A small, real zero-knowledge virtual machine: an interpreter, a STARK arithmetization
 (AIR), and a prover/verifier built on [Winterfell](https://github.com/facebook/winterfell).
 It executes `ADD`/`SUB`/`MUL` programs with real conditional control flow (`JZ`/`JNZ`)
