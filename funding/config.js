@@ -1,11 +1,7 @@
-// Fill in real wallet addresses before deploying. Until you do, the donation
-// button will attempt to send funds to a placeholder address and MetaMask's
-// own checksum validation will reject it — the page fails safely closed, it
-// does not silently send funds nowhere.
-//
-// You can use one address for every entry (simplest: a single EOA that holds
-// ETH plus whatever ERC-20s you configure) or separate addresses per chain.
-const YOUR_WALLET_ADDRESS = '0xYOUR_WALLET_ADDRESS_HERE'
+// One EVM-compatible address, reused across every EVM chain configured below
+// (Ethereum, Optimism, Arbitrum, Filecoin EVM). Verified as a checksummed
+// address via ethers.getAddress() before being committed here.
+const YOUR_WALLET_ADDRESS = '0x5A53E897C2A98432A87Ba3cc2266F481Cb9BAfED'
 
 const donationConfigs = {
   ETH: {
@@ -55,6 +51,14 @@ const donationConfigs = {
     isNative: false,
     explorer: 'https://arbiscan.io/tx/',
     chainId: 42161
+  },
+  FIL: {
+    donationWallet: YOUR_WALLET_ADDRESS,
+    tokenContract: null,
+    decimals: null,
+    isNative: true,
+    explorer: 'https://filfox.info/en/tx/',
+    chainId: 314
   }
 }
 
@@ -79,5 +83,23 @@ const networkConfigs = {
     rpcUrls: ['https://arb1.arbitrum.io/rpc'],
     nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
     blockExplorerUrls: ['https://arbiscan.io']
+  },
+  314: {
+    // Chain ID, native currency, and RPC verified live against chainlist.org
+    // (Filecoin - Mainnet, height ~6327527 at verification time).
+    chainId: '0x13a',
+    chainName: 'Filecoin Mainnet',
+    rpcUrls: ['https://api.node.glif.io/rpc/v1'],
+    nativeCurrency: { name: 'Filecoin', symbol: 'FIL', decimals: 18 },
+    blockExplorerUrls: ['https://filfox.info/en']
   }
+}
+
+// Bitcoin (native SegWit) and Solana addresses below are shown as static
+// "send directly" targets on the page, not wired into the MetaMask flow
+// above — neither chain speaks the Ethereum JSON-RPC that ethers.js and
+// window.ethereum expect, so there is no "connect wallet" step for them here.
+const directAddresses = {
+  BTC: { network: 'Bitcoin Mainnet', address: 'bc1qt7tp4nly9xzjkj2ajah5qt0pgvqg8jplpxdeln' },
+  SOL: { network: 'Solana Mainnet Beta', address: '73Cc84sjGtk3RNSVoEres4PLMcZZtg4n46kQUzJnR93n' }
 }

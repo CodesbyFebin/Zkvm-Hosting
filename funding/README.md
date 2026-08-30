@@ -14,10 +14,11 @@ not hand-rolled. `script.js` is used unmodified.
 
 ## Before deploying
 
-1. **Wallet address.** Open [`config.js`](config.js) and replace
-   `YOUR_WALLET_ADDRESS` with a real address. Until you do, the donate button
-   fails safely (ethers rejects the placeholder as an invalid address before
-   any transaction is built) — it does not send funds nowhere.
+1. **Wallet addresses.** [`config.js`](config.js) has a real, checksum-verified
+   EVM address wired up for ETH/USDT/OP/ARB/FIL (wallet-connect), plus
+   checksum/format-verified BTC and Solana addresses for direct-send (shown
+   as address + QR, not wallet-connect — neither chain speaks Ethereum
+   JSON-RPC). Swap in your own before publishing if these aren't yours.
 2. **GitHub Sponsors.** [`index.html`](index.html) links to
    `github.com/sponsors/CodesbyFebin`. If Sponsors isn't enabled on that
    account yet, that link 404s — enable it at

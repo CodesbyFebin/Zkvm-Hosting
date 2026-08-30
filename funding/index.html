@@ -49,8 +49,9 @@
         </div>
         <div class="card">
           <h3>Crypto</h3>
-          <p>ETH, USDT, OP, and ARB across Ethereum, Optimism, and Arbitrum — connect a
-          wallet below and send directly, no intermediary.</p>
+          <p>ETH, USDT, OP, ARB, and FIL across Ethereum, Optimism, Arbitrum, and
+          Filecoin via wallet-connect below, plus direct-send Bitcoin and Solana
+          addresses further down — no intermediary.</p>
         </div>
       </div>
     </section>
@@ -70,6 +71,7 @@
           <option value="USDT_ARB">USDT (Arbitrum)</option>
           <option value="OP">OP (Optimism)</option>
           <option value="ARB">ARB (Arbitrum)</option>
+          <option value="FIL">FIL (Filecoin EVM Mainnet)</option>
         </select>
       </div>
       <div>
@@ -80,6 +82,14 @@
       <section id="qrCode">
         <div id="qrCodeContainer"></div>
       </section>
+    </section>
+
+    <section class="funding-block">
+      <h2>Bitcoin &amp; Solana</h2>
+      <p>Neither chain speaks the Ethereum JSON-RPC the wallet-connect flow above
+      uses, so these are direct-send addresses, not part of that flow — copy the
+      address or scan the QR code from your own wallet.</p>
+      <div class="card-grid" id="directAddresses"></div>
     </section>
 
     <section class="funding-block">
@@ -139,5 +149,26 @@
   <script src="./static/js/qrcode.min.js"></script>
   <script src="./script.js" type="module"></script>
   <script src="./config.js"></script>
+  <script>
+    // Renders the direct-send (non-EVM) address cards from `directAddresses`
+    // in config.js. Kept separate from script.js (the vendored wallet-connect
+    // widget) since this has nothing to do with that flow.
+    (function renderDirectAddresses() {
+      const container = document.getElementById('directAddresses')
+      Object.entries(directAddresses).forEach(([symbol, { network, address }]) => {
+        const card = document.createElement('div')
+        card.className = 'card'
+        card.innerHTML = `
+          <h3>${symbol}</h3>
+          <p class="fineprint">${network} only</p>
+          <p class="address-mono"></p>
+          <div class="qr-slot"></div>
+        `
+        card.querySelector('.address-mono').textContent = address
+        container.appendChild(card)
+        new QRCode(card.querySelector('.qr-slot'), { text: address, width: 112, height: 112 })
+      })
+    })()
+  </script>
 </body>
 </html>
