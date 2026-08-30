@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 620" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <rect width="860" height="620" fill="#ffffff"/>
+
+  <!-- palette -->
+  <!-- box fill: #f3f4f6, box stroke: #94a3b8, accent (proof flow): #1f6b4f, text: #111827 -->
+
+  <!-- .zkasm source -->
+  <rect x="330" y="16" width="200" height="48" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="430" y="45" text-anchor="middle" font-size="14" fill="#111827">program.zkasm</text>
+
+  <line x1="430" y1="64" x2="430" y2="96" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="430,100 424,90 436,90" fill="#94a3b8"/>
+
+  <!-- zkvm-isa -->
+  <rect x="195" y="104" width="470" height="70" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="430" y="130" text-anchor="middle" font-size="14" font-weight="bold" fill="#111827">zkvm-isa</text>
+  <text x="430" y="150" text-anchor="middle" font-size="11.5" fill="#374151">interpreter · execution trace (acc, registers, control flow)</text>
+
+  <line x1="430" y1="174" x2="430" y2="206" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="430,210 424,200 436,200" fill="#94a3b8"/>
+
+  <!-- zkvm-stark -->
+  <rect x="130" y="214" width="600" height="80" rx="6" fill="#eaf3ee" stroke="#1f6b4f"/>
+  <text x="430" y="240" text-anchor="middle" font-size="14" font-weight="bold" fill="#15503a">zkvm-stark</text>
+  <text x="430" y="260" text-anchor="middle" font-size="11.5" fill="#15503a">AIR + STARK prover/verifier (Winterfell) — real proof, ~11 KB, sub-10ms verify</text>
+  <text x="430" y="280" text-anchor="middle" font-size="10.5" fill="#4b7c68">no lookup/permutation gadget needed — see the doc comment in src/lib.rs for why</text>
+
+  <line x1="430" y1="294" x2="430" y2="318" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="430,322 424,312 436,312" fill="#94a3b8"/>
+
+  <!-- three access surfaces -->
+  <rect x="40" y="330" width="230" height="80" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="155" y="356" text-anchor="middle" font-size="13" font-weight="bold" fill="#111827">zkvm-cli</text>
+  <text x="155" y="374" text-anchor="middle" font-size="11" fill="#374151">run · prove · verify</text>
+  <text x="155" y="390" text-anchor="middle" font-size="11" fill="#374151">deploy · demo</text>
+
+  <rect x="315" y="330" width="230" height="80" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="430" y="356" text-anchor="middle" font-size="13" font-weight="bold" fill="#111827">zkvm-host-server</text>
+  <text x="430" y="374" text-anchor="middle" font-size="11" fill="#374151">HTTP: /v1/proofs</text>
+  <text x="430" y="390" text-anchor="middle" font-size="11" fill="#374151">/v1/verify · /v1/backends</text>
+
+  <rect x="590" y="330" width="230" height="80" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="705" y="356" text-anchor="middle" font-size="13" font-weight="bold" fill="#111827">MCP tools</text>
+  <text x="705" y="374" text-anchor="middle" font-size="11" fill="#374151">prove · verify</text>
+  <text x="705" y="390" text-anchor="middle" font-size="11" fill="#374151">for Claude, Cursor, ...</text>
+
+  <line x1="270" y1="326" x2="180" y2="316" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="590" y1="326" x2="680" y2="316" stroke="#94a3b8" stroke-width="1.5"/>
+
+  <line x1="155" y1="410" x2="155" y2="440" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="430" y1="410" x2="430" y2="440" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="705" y1="410" x2="705" y2="440" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="155" y1="440" x2="705" y2="440" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="430" y1="440" x2="430" y2="464" stroke="#94a3b8" stroke-width="1.5"/>
+  <polygon points="430,468 424,458 436,458" fill="#94a3b8"/>
+  <text x="440" y="452" font-size="10.5" fill="#6b7280">proof + public inputs</text>
+
+  <!-- onchain_demo.sh path -->
+  <rect x="230" y="476" width="400" height="66" rx="6" fill="#f3f4f6" stroke="#94a3b8"/>
+  <text x="430" y="500" text-anchor="middle" font-size="13" font-weight="bold" fill="#111827">scripts/onchain_demo.sh</text>
+  <text x="430" y="518" text-anchor="middle" font-size="11" fill="#374151">verify locally, then attest the result on-chain</text>
+
+  <line x1="430" y1="542" x2="430" y2="570" stroke="#1f6b4f" stroke-width="1.5"/>
+  <polygon points="430,574 424,564 436,564" fill="#1f6b4f"/>
+
+  <!-- contracts -->
+  <rect x="105" y="580" width="650" height="34" rx="6" fill="#eaf3ee" stroke="#1f6b4f"/>
+  <text x="430" y="601" text-anchor="middle" font-size="12" fill="#15503a">contracts/ — AttestedVerifier + ProofOrchestrator (task, reward, on-chain record)</text>
+</svg>

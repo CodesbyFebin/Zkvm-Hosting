@@ -13,6 +13,8 @@ executed correctly.
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what this does and — just as importantly —
 does not cover yet, and how it relates to the larger multi-phase strategy it grew out of.
 
+![Architecture: program.zkasm flows through zkvm-isa and zkvm-stark, then out through the CLI, HTTP server, and MCP tools, to the on-chain demo and contracts](docs/assets/architecture.svg)
+
 ## Layout
 
 - [`crates/zkvm-isa`](crates/zkvm-isa) — the VM: instruction set, interpreter, `.zkasm` parser.
@@ -134,3 +136,11 @@ control-flow outcome, or a different register access, for the same instructions,
 still produce a proof that verifies. `zkvm-stark`'s test suite checks this directly:
 tampering with the claimed result, program, `active` flags, or register selectors
 after proof generation causes verification to fail.
+
+## Contributing
+
+Bug reports, `.zkasm` programs that break something, and small honestly-scoped PRs are
+welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and the PR checklist.
+Found a soundness or security issue? Read [`SECURITY.md`](SECURITY.md) before filing a
+public issue. This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
+See [`CHANGELOG.md`](CHANGELOG.md) for release history.
