@@ -3,3 +3,6 @@ contact_links:
   - name: Security / soundness report
     url: https://github.com/CodesbyFebin/Zkvm-Hosting/blob/main/SECURITY.md
     about: Please don't file a public issue for a soundness or security finding — read this first.
+  - name: Sponsor / fund this project
+    url: https://github.com/CodesbyFebin/Zkvm-Hosting/tree/main/funding
+    about: Not a bug — sponsorship, crypto donations, and grant program links live here.

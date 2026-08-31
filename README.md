@@ -3,6 +3,7 @@
 [![ZK proof CI gate](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2.svg)](https://github.com/sponsors/CodesbyFebin)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/CodesbyFebin)](https://github.com/sponsors/CodesbyFebin)
 [![Funding](https://img.shields.io/badge/funding-ETH%20%C2%B7%20BTC%20%C2%B7%20SOL%20%C2%B7%20FIL-1f6b4f.svg)](funding)
 
 A small, real zero-knowledge virtual machine: an interpreter, a STARK arithmetization
