@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proof as a CI Check: What zk-ci.yml Actually Verifies on Every PR</title>
+<meta name="description" content="A GitHub Actions workflow that builds the workspace, runs every Rust and Solidity test, then boots a real prover and proves + verifies every example program before a PR can merge.">
+<link rel="canonical" href="https://www.zkvm.host/blog/proof-as-a-ci-check/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Proof as a CI Check: What zk-ci.yml Actually Verifies on Every PR",
+  "description": "The real GitHub Actions pipeline that boots a live prover and proves plus verifies every example program before a pull request can merge.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/proof-as-a-ci-check/",
+  "datePublished": "2026-09-01"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">CI / DevOps</span>
+  <h1>Proof as a CI Check: What zk-ci.yml Actually Verifies on Every PR</h1>
+  <p class="dek">"Proof as a CI check" is easy to say and easy to fake with a unit test that mocks the prover. Here's the actual workflow file, and why each step is there.</p>
+  <p class="meta">2026-09-01 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/.github/workflows/zk-ci.yml">.github/workflows/zk-ci.yml</a></p>
+
+  <p>The gate only runs when it matters — its path filter is <code>examples/**.zkasm</code>, <code>crates/**</code>, <code>contracts/**</code>, or the workflow file itself, on every pull request and on every push to <code>main</code>. Two jobs run:</p>
+
+  <h2>Job 1: build, test, then actually prove</h2>
+  <pre><code>cargo build --release --workspace
+cargo test --release --workspace</code></pre>
+  <p>So far that's a normal Rust CI job. The part that makes it "proof as a CI check" rather than "tests as a CI check" comes next: the workflow starts a real <code>zkvm-host-server</code> in the background, polls <code>/healthz</code> for up to 15 seconds, and only then runs this loop:</p>
+  <pre><code>for f in examples/*.zkasm; do
+  ./target/release/zkvm deploy "$f" --out "${f}.proof"
+  ./target/release/zkvm verify "$f" "${f}.proof"
+done</code></pre>
+  <p>Every <code>.zkasm</code> file under <code>examples/</code> — currently <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/examples/branching.zkasm">branching.zkasm</a>, <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/examples/counter.zkasm">counter.zkasm</a>, and <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/examples/fibonacci_like.zkasm">fibonacci_like.zkasm</a> — gets deployed to the live server and its returned proof verified, over a real HTTP round trip. If any one of them fails to prove or fails to verify, the job fails and the PR is blocked. Adding a new example program that doesn't verify is caught here, not by a human reviewer eyeballing a diff.</p>
+
+  <h2>Job 2: forge test</h2>
+  <pre><code>cd contracts && forge test -vv</code></pre>
+  <p>Runs independently, with <code>contracts/lib/forge-std</code> checked out as a git submodule. Currently 8 tests — see <a href="/blog/testing-an-onchain-orchestrator/">the Foundry testing post</a> for what they actually check.</p>
+
+  <div class="callout">The healthcheck loop matters more than it looks: without it, the deploy step would race a server that hasn't finished binding its port yet, and an intermittent CI failure unrelated to the actual code would erode trust in the gate. <code>curl -sf http://127.0.0.1:4477/healthz</code>, retried every 0.5s for up to 30 attempts, before anything gets deployed.</div>
+
+  <p>What this gate does <em>not</em> catch: performance regressions (a program that used to prove in 2 seconds and now takes 20 still passes, as long as it eventually verifies), and anything about the on-chain path — <code>scripts/onchain_demo.sh</code> isn't wired into CI yet, so a break there would only surface by running it manually.</p>
+
+  <div class="post-footer">
+    Related: <a href="/blog/testing-an-onchain-orchestrator/">what the Foundry test suite checks</a>, and <a href="/blog/zkvm-host-vs-the-repo/">what's real vs. pitched across the rest of the project</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

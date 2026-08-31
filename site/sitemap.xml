@@ -65,4 +65,24 @@
     <loc>https://www.zkvm.host/blog/sub-10ms-verify/</loc>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://www.zkvm.host/blog/zkvm-host-vs-the-repo/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/blog/the-trust-boundary/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/blog/proof-as-a-ci-check/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/blog/testing-an-onchain-orchestrator/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/blog/reading-a-winterfell-air/</loc>
+    <priority>0.6</priority>
+  </url>
 </urlset>

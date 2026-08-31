@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Testing an On-Chain Task/Reward Orchestrator with Foundry</title>
+<meta name="description" content="Eight Foundry tests for ProofOrchestrator.sol -- what each one actually checks, and why the failure modes they cover are the ones that matter for a paid attestation flow.">
+<link rel="canonical" href="https://www.zkvm.host/blog/testing-an-onchain-orchestrator/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Testing an On-Chain Task/Reward Orchestrator with Foundry",
+  "description": "What each of the eight Foundry tests for ProofOrchestrator.sol actually checks, and why those specific failure modes matter for a paid attestation flow.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/testing-an-onchain-orchestrator/",
+  "datePublished": "2026-09-01"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Contracts / Testing</span>
+  <h1>Testing an On-Chain Task/Reward Orchestrator with Foundry</h1>
+  <p class="dek">ProofOrchestrator.sol moves money once a proof is attested. Eight tests, each named for the specific thing it refuses to let happen.</p>
+  <p class="meta">2026-09-01 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/contracts/test/ProofOrchestrator.t.sol">contracts/test/ProofOrchestrator.t.sol</a></p>
+
+  <p>The naming convention is deliberate: every test name states the specific guarantee, not just the function under test, so a failing test in CI output already tells you what broke without opening the file.</p>
+
+  <table style="width:100%; border-collapse:collapse; margin: 20px 0; font-size: 13.5px;">
+    <thead>
+      <tr style="text-align:left; border-bottom:1px solid var(--border);">
+        <th style="padding:8px 12px 8px 0;">Test</th>
+        <th style="padding:8px 0;">What it refuses to let happen</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_submitProof_<br>alwaysRevertsWithoutARealVerifier</td><td style="padding:8px 0;">Payment without a real verifier configured — the default state is "pays nothing," not "pays on faith."</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_paysOutOnlyAfterAttestation</td><td style="padding:8px 0;">A prover collecting a reward before the attester has actually attested.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_rejectsProofBytesThat<br>DontMatchTheAttestation</td><td style="padding:8px 0;">Submitting different proof bytes than the ones the attester actually attested to.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_onlyAttesterCanAttest</td><td style="padding:8px 0;">Anyone other than the configured attester address calling <code>attest()</code>.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_cannotDoubleFulfill</td><td style="padding:8px 0;">Claiming the same reward twice for one task.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_onlyTheClaimingProver<br>CanSubmit</td><td style="padding:8px 0;">A different address than the one that claimed the task submitting a proof for it.</td></tr>
+      <tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_cannotClaimAnAlready<br>ClaimedTask</td><td style="padding:8px 0;">Two provers racing to claim the same task and both succeeding.</td></tr>
+      <tr><td style="padding:8px 12px 8px 0; font-family:var(--font-mono); white-space:nowrap;">test_cannotClaimOrSubmit<br>ForAnUnknownTask</td><td style="padding:8px 0;">Referencing a task ID that was never created.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Notice what's <em>not</em> in this list: nothing here tests that the STARK proof itself is valid, because the contract can't check that — see <a href="/blog/the-trust-boundary/">the trust-boundary post</a> for why. These eight tests cover the access-control and state-machine surface of "who can trigger a payment, and when" — the part that <em>is</em> the contract's job — not the cryptography, which is <code>zkvm-stark</code>'s job and is tested separately in Rust.</p>
+
+  <div class="callout"><code>contracts/lib/forge-std</code> is a git submodule, which is why CI checks it out with <code>submodules: true</code> before running <code>forge test -vv</code> — an easy step to forget when copying this CI job elsewhere, since a missing submodule fails with a confusing "file not found" rather than an obvious submodule error.</div>
+
+  <div class="post-footer">
+    Related: <a href="/blog/onchain-trust-bridge/">why the verifier contract is named AttestedVerifier</a>, and <a href="/blog/proof-as-a-ci-check/">how these tests run in CI</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

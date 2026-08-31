@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Trust Boundary, Written Down: What's Trustless Here and What Isn't</title>
+<meta name="description" content="The proof itself is trustless STARK cryptography. The payment for it is not. Exactly where that line sits, and what it would take to move it.">
+<link rel="canonical" href="https://www.zkvm.host/blog/the-trust-boundary/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "The Trust Boundary, Written Down: What's Trustless Here and What Isn't",
+  "description": "A precise line between the trustless STARK proof and the trusted attestation that turns it into an on-chain payment.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/the-trust-boundary/",
+  "datePublished": "2026-09-01"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Security</span>
+  <h1>The Trust Boundary, Written Down: What's Trustless Here and What Isn't</h1>
+  <p class="dek">"Is this trustless?" has one answer for the proof and a different one for the payment. Both answers are precise, not hand-wavy, and this is where they're written down together.</p>
+  <p class="meta">2026-09-01 · source: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a></p>
+
+  <h2>The proof: trustless, end to end</h2>
+  <p>A <code>zkvm-stark</code> proof — produced by <code>prove_program</code>, checked by <code>verify_program</code> — is a real STARK. Verifying it, whether locally via <code>zkvm verify</code>, over HTTP via <code>/v1/verify</code>, or via the <code>verify</code> MCP tool, requires no trust in whoever generated it. The test suite backs this with negative tests: <code>rejects_tampered_result</code> and <code>rejects_tampered_program</code> confirm a proof manufactured for one claim is rejected against a different one. <strong>This is the only trustless part of the system end to end.</strong> Everything past this point is about what happens once that proof needs to affect something outside a local process.</p>
+
+  <h2>The on-chain path: an attested bridge, not a verifier</h2>
+  <p><code>contracts/</code>'s <code>ProofOrchestrator</code> pays a prover once a proof is "accepted," and what "accepted" means depends entirely on which <code>IProofVerifier</code> it's configured with:</p>
+  <ul>
+    <li><strong><code>UnimplementedStarkVerifier</code></strong> — accepts nothing. Every <code>submitProof</code> call reverts. No trust required, because no payment is possible.</li>
+    <li><strong><code>AttestedVerifier</code></strong> (the one <code>scripts/onchain_demo.sh</code> actually uses) — accepts a proof once a designated <code>attester</code> address calls <code>attest(publicInputsHash, proofHash)</code>.</li>
+  </ul>
+  <p>Concretely, the trust assumption is: <em>the attester key is not compromised, and whoever controls it always verifies locally before attesting, never on faith.</em> The contract has no way to detect a violation of that — it checks that the attester's signature is present, not that the underlying math is sound. This is the same trust model a centralized sequencer has before its fraud/validity proofs go live: a known, single point of trust, acceptable because it's explicit and small, not because it's absent.</p>
+
+  <h2>Key management, honestly</h2>
+  <p>There is currently no key-management story beyond "a private key exists and someone runs <code>cast send ... --private-key</code>." <code>scripts/onchain_demo.sh</code>'s Anvil test keys are demo-only. There's no in-place rotation function on the current contract — rotation means deploying a new <code>AttestedVerifier</code> with a new attester address. That's a real gap for anything running continuously, written down as a decision, not discovered later as a silent omission.</p>
+
+  <div class="callout">A single wrong number would make this section marketing instead of a threat model, so the claim is scoped tightly: <strong>the proof is trustless, the payment is not</strong> — stated in exactly those terms, not "mostly trustless" or "trustless by design."</div>
+
+  <h2>When does this stop being true?</h2>
+  <p>Only when a real cryptographic verifier replaces <code>AttestedVerifier</code> — porting FRI/Merkle/field-arithmetic verification into Solidity, or wrapping the STARK in a SNARK cheap enough to verify on-chain. Both paths, and why each is a substantial independent undertaking rather than a follow-up PR, are described in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a>.</p>
+
+  <div class="post-footer">
+    Related: <a href="/blog/onchain-trust-bridge/">why the contract is named AttestedVerifier and not StarkVerifier</a>, and <a href="/blog/zkvm-host-vs-the-repo/">what's real vs. pitched across the rest of the project</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

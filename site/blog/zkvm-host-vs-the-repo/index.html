@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What zkvm.host Actually Is vs. the Open-Source Repo It's Built On</title>
+<meta name="description" content="zkvm.host's homepage describes a multi-VM proving company. Here's exactly which piece of that is real today, which piece is architecturally real but single-backend, and which piece is pure pitch.">
+<link rel="canonical" href="https://www.zkvm.host/blog/zkvm-host-vs-the-repo/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "What zkvm.host Actually Is vs. the Open-Source Repo It's Built On",
+  "description": "A line-by-line breakdown of what's built, what's architecturally real but single-backend, and what's pure product-vision copy on the zkvm.host homepage.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/zkvm-host-vs-the-repo/",
+  "datePublished": "2026-09-01"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Positioning</span>
+  <h1>What zkvm.host Actually Is vs. the Open-Source Repo It's Built On</h1>
+  <p class="dek">The homepage describes a multi-VM proving company: SP1/RISC Zero/Jolt/ZKWASM routing, a pay-per-proof API, CI/CD integration, an edge SDK, four pricing tiers. None of that is a lie exactly — it's a product vision, clearly marked as simulated where it's demoed — but it deserves a page that just says, plainly, what's real.</p>
+  <p class="meta">2026-09-01 · maps to <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></p>
+
+  <h2>What's real: one backend, over HTTP and MCP</h2>
+  <p>The actual, tested mechanic behind "push code, get a proof" is <code>crates/zkvm-host-server</code>: <code>POST /v1/proofs</code> takes a <code>.zkasm</code> program and returns a real STARK proof. <code>POST /v1/verify</code> checks one — the server re-executes the program itself to know what to check against, so it never needs the caller's trace. <code>zkvm-cli deploy</code> wraps this in a real HTTP round trip, tested end to end against a running server, not mocked. The same two operations are also exposed as real MCP tools, verified with an actual <code>initialize</code> → <code>tools/list</code> → <code>tools/call</code> handshake — see <a href="/blog/mcp-meets-stark/">the MCP post</a>.</p>
+
+  <h2>What's architecturally real but single-backend: the router</h2>
+  <p>A <code>ProverBackend</code> trait and a <code>ProverRouter</code> exist. <code>GET /v1/backends</code> lists what's registered; two are: <code>stark</code> (the real prover above) and <code>mock-echo</code>, a routing stub whose <code>verify</code> always returns an error, never <code>valid: true</code> — it proves the plumbing works without pretending to be a second cryptographic backend. This makes "multi-VM router" an architecturally real, tested claim in the narrow sense that adding SP1 or RISC Zero later is one new file plus one <code>router.register()</code> call — while being explicit that no second <em>real</em> backend exists yet.</p>
+
+  <div class="callout">SP1 specifically was investigated, not assumed: a bare <code>sp1-sdk</code> dependency resolves <strong>518 crates</strong> and needs a Go-based FFI dependency for its Groth16 wrapping step; <code>cargo check</code> ran ~4 minutes before failing on a missing <code>protoc</code>, without yet reaching the RISC-V toolchain. More fundamentally, SP1 proves compiled RISC-V ELF binaries — it has no relationship to this repo's <code>.zkasm</code> accumulator ISA. Full findings: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a>.</div>
+
+  <h2>What closed since the pitch was written</h2>
+  <p><code>scripts/onchain_demo.sh</code> deploys the contracts, gets a real proof from a real running server, verifies it locally, attests it on-chain, and confirms the prover is actually paid. <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/.github/workflows/zk-ci.yml">zk-ci.yml</a> builds the workspace, runs every Rust and Solidity test, then boots the real server and runs <code>zkvm deploy</code> + <code>zkvm verify</code> against every example program on every PR — "proof as a CI check," for real. See <a href="/blog/proof-as-a-ci-check/">the CI post</a> for exactly what that gate checks.</p>
+
+  <h2>What's explicitly not here</h2>
+  <ul>
+    <li>A second real proving backend (SP1, RISC Zero, Jolt, ZKWASM) — investigated, not built.</li>
+    <li>Trustless on-chain verification — the on-chain path is an attested bridge, not a cryptographic check. See <a href="/blog/the-trust-boundary/">the trust-boundary post</a>.</li>
+    <li>Multi-tenant serverless infrastructure, billing, or usage tiers — the server is a single process with no auth, no rate limiting, no persistence.</li>
+    <li>An edge/WASM proving SDK, and AI-agent-execution verification.</li>
+  </ul>
+
+  <p class="callout"><strong>The honest summary:</strong> "push a program, get a proof" over HTTP and MCP is real and tested today. The multi-backend routing layer is real plumbing around one real backend. The pricing tiers, edge SDK, and agent verification are the pitch for where this could go, not a description of what ships. All three of those are true statements about the same project, and this page exists so a reader doesn't have to guess which parts of the homepage they're reading.</p>
+
+  <div class="post-footer">
+    Full detail, including the SP1 investigation's exact API findings: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a>. On the trust question specifically: <a href="/blog/the-trust-boundary/">The Trust Boundary, Written Down</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

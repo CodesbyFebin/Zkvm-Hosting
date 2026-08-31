@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading a Winterfell AIR: One Degree-4 Constraint, Two Kinds of Check</title>
+<meta name="description" content="A line-by-line walk through evaluate_transition and get_assertions in this VM's real AIR -- what's checked algebraically, what's just asserted, and why the declared degree is 4 even when the real one is usually 3.">
+<link rel="canonical" href="https://www.zkvm.host/blog/reading-a-winterfell-air/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Reading a Winterfell AIR: One Degree-4 Constraint, Two Kinds of Check",
+  "description": "A line-by-line walk through this VM's real evaluate_transition and get_assertions, and why the declared constraint degree is 4 even though the interpolated degree is usually 3.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/reading-a-winterfell-air/",
+  "datePublished": "2026-09-01"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">AIR design</span>
+  <h1>Reading a Winterfell AIR: One Degree-4 Constraint, Two Kinds of Check</h1>
+  <p class="dek">Most "how STARKs work" explainers stop at "transition constraints and boundary constraints." Here's what those two categories actually look like as Rust, in a trace with 10 fixed columns plus two per register.</p>
+  <p class="meta">2026-09-01 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+
+  <h2>The column layout</h2>
+  <p>Ten fixed columns — the accumulator, seven one-hot opcode selectors (<code>s_add</code>/<code>s_sub</code>/<code>s_mul</code>/<code>s_jz</code>/<code>s_jnz</code>/<code>s_load</code>/<code>s_store</code>), the shared immediate/target/register operand (<code>right</code>), and an <code>active</code> flag — plus <code>NUM_REGISTERS</code> one-hot "which register" selectors and <code>NUM_REGISTERS</code> register-value columns. One row per static instruction, not per executed step: a skipped branch still gets a row, with <code>active = 0</code>.</p>
+
+  <h2>Boundary constraints: nine per row, asserted directly</h2>
+  <p><code>get_assertions</code> asserts every selector, <code>right</code>, <code>active</code>, and every <code>reg_sel[k]</code> — for every row — against the specific program being proven. That's possible because there's no secret witness: the verifier already re-executed the program and knows the correct value for all of these at every step, the same way it knows the initial accumulator value and the claimed final result (the only two boundary assertions on the accumulator column itself). See <a href="/blog/no-secret-witness/">the no-secret-witness post</a> for why that's sound rather than a shortcut.</p>
+
+  <h2>Transition constraints: the two things that actually need algebra</h2>
+  <p>Only the accumulator's and each register's <em>trajectory</em> can't be asserted directly, because a boundary assertion only pins a value at one specific step — it can't say "this value evolves consistently step to step." That needs <code>evaluate_transition</code>:</p>
+  <pre><code>let applied = s_add * (acc + right)
+    + s_sub * (acc - right)
+    + s_mul * (acc * right)
+    + (s_jz + s_jnz + s_store) * acc
+    + s_load * loaded;
+
+result[0] = next_acc - (active * applied + (E::ONE - active) * acc);</code></pre>
+  <p><code>loaded</code> is the one-hot-selected register value (<code>reg_sel[k] * registers[k]</code>, summed). Because <code>s_add</code> through <code>s_load</code> are already known-correct one-hot values from the boundary assertions, at most one term in <code>applied</code> is non-zero for any given row — this is a selector-weighted sum standing in for a match statement, not five separate additions actually happening. The register update constraint follows the same shape, once per register:</p>
+  <pre><code>let write_k = active * s_store * reg_sel[k];
+result[1 + k] = next_r_k - (write_k * acc + (E::ONE - write_k) * r_k);</code></pre>
+
+  <h2>Why the declared degree is 4 when the real one is usually 3</h2>
+  <p>The worst-case term — <code>active * s_mul * acc * right</code>, four trace columns multiplied together — is degree 4, so <code>TransitionConstraintDegree::new(4)</code> is the declared bound. But on a trace where <code>active</code> is constant (straight-line programs, or an untaken branch), the interpolated polynomial's <em>actual</em> degree degenerates to 3. Winterfell's own debug-only <code>validate_transition_degrees</code> self-check demands the actual degree match the declared one exactly, which only happens on inputs that hit the true degree-4 case — see <a href="/blog/winterfell-degree-bug/">the Winterfell debug-assertion post</a> for the full reproduction and why <code>--release</code> is required for tests.</p>
+
+  <div class="callout">Nine boundary assertions per row plus two transition constraints (accumulator, register) is the entire AIR. No permutation argument, no lookup table, no auxiliary trace segment — because this system's threat model doesn't need one. That's a scope decision specific to "no secret witness," not a Winterfell limitation.</div>
+
+  <div class="post-footer">
+    Related: <a href="/blog/no-secret-witness/">why branch outcomes don't need an is-zero gadget</a>, and <a href="/blog/registers-without-a-mux/">the register-selector soundness argument in more depth</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -75,7 +75,7 @@ verify_program(proof, pub_inputs)</code></pre>
   <p class="callout"><strong>The honest framing:</strong> this makes the system a STARK-verifiable virtual machine for public, deterministic computation — not a zero-knowledge VM in the RISC Zero/SP1 sense, which is built specifically to hide a private witness. That distinction matters enough that it shapes how this project describes itself; see the <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/THREAT_MODEL.md">threat model</a> for the fuller picture of what is and isn't trustless here.</p>
 
   <div class="post-footer">
-    Full source and tests: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>. Related: <a href="/blog/registers-without-a-mux/">how the register file uses the same trick</a>.
+    Full source and tests: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>. Related: <a href="/blog/registers-without-a-mux/">how the register file uses the same trick</a>, and <a href="/blog/reading-a-winterfell-air/">a full walk through the AIR's transition and boundary constraints</a>.
   </div>
 </article>
 
