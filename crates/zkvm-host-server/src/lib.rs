@@ -25,8 +25,8 @@ use serde::{Deserialize, Serialize};
 use backend::BackendProof;
 use backends::{mock_echo::MockEchoBackend, stark::StarkBackend};
 use router::ProverRouter;
-use zkvm_isa::{execute, Program};
-use zkvm_stark::{prove_program, public_inputs_for, verify_program, Proof};
+use zkvm_isa::Program;
+use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
 
 struct AppState {
     router: ProverRouter,
@@ -139,8 +139,7 @@ async fn verify_proof_handler(
     let proof = proof_from_bytes(&bytes).map_err(|e| bad_request(format!("bad proof bytes: {e}")))?;
 
     let padded = program.padded();
-    let trace = execute(&padded);
-    let pub_inputs = public_inputs_for(&padded, &trace);
+    let pub_inputs = public_inputs_for_program(&padded);
     let claimed_result = pub_inputs.result.to_string();
 
     match verify_program(proof, pub_inputs) {

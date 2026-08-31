@@ -6,7 +6,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 use winter_utils::Deserializable;
 use zkvm_isa::{execute, FieldElement, Instruction, Program};
-use zkvm_stark::{prove_program, public_inputs_for, verify_program, Proof};
+use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -90,8 +90,7 @@ fn cmd_verify(args: &[String]) -> Result<(), String> {
     // The verifier only needs the program (which it already trusts) to recompute the
     // public inputs to check the proof against -- it never sees the accumulator trace.
     let padded = program.padded();
-    let trace = execute(&padded);
-    let pub_inputs = public_inputs_for(&padded, &trace);
+    let pub_inputs = public_inputs_for_program(&padded);
 
     verify_program(proof, pub_inputs).map_err(|e| format!("verification failed: {e}"))?;
     println!("OK: proof verifies against {path}");

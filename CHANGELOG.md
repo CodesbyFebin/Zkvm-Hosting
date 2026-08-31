@@ -3,6 +3,21 @@
 All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- `zkvm_stark::public_inputs_for(program, trace)` replaced with
+  `public_inputs_for_program(program)`. The old signature took a program and a
+  trace but silently ignored the program (`let _ = program;`) — every call
+  site in this repo always re-executed the program immediately beforehand, so
+  this was never a live bug here, but nothing in the type system stopped a
+  caller from passing a trace that didn't actually correspond to the program
+  argument. The new function takes only the program and re-executes it
+  internally, making that mismatch impossible to construct. Found via an
+  external code review; verified against the actual source (all four call
+  sites in `zkvm-cli`, `zkvm-host-server`) before fixing.
+
 ## [0.1.0] — 2026-08-31
 
 Initial public release.

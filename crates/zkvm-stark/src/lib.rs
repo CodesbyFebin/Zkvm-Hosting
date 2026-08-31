@@ -108,11 +108,17 @@ impl ToElements<BaseElement> for PublicInputs {
     }
 }
 
-/// Recomputes the public inputs for `program`'s execution from `trace` -- this is
-/// what an independent verifier does: replay the *program* (which it already
-/// knows/trusts), not the proof, to know what it should check the proof against.
-pub fn public_inputs_for(program: &Program, trace: &ExecutionTrace) -> PublicInputs {
-    let _ = program; // kept for API symmetry with call sites; the trace already reflects it
+/// Recomputes the public inputs for `program` by re-executing it -- this is what an
+/// independent verifier does: replay the *program* (which it already knows/trusts),
+/// not the proof, to know what it should check the proof against. Takes only the
+/// program, not a caller-supplied trace: an earlier version took `(program, trace)`
+/// and silently ignored `program`, which meant nothing in the type system stopped a
+/// caller from passing a trace that didn't actually come from that program. Every
+/// call site in this repo always re-executed `program` immediately beforehand anyway
+/// (so this was never a live bug here), but the old signature made that a caller
+/// discipline instead of something the API itself guaranteed.
+pub fn public_inputs_for_program(program: &Program) -> PublicInputs {
+    let trace = zkvm_isa::execute(program);
     PublicInputs {
         initial: trace.rows.first().map(|r| r.acc).unwrap_or(BaseElement::ZERO),
         result: trace.result,

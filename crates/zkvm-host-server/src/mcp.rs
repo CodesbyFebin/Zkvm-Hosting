@@ -30,8 +30,8 @@ use rmcp::{
 };
 
 use winter_utils::Deserializable;
-use zkvm_isa::{execute, Program};
-use zkvm_stark::{prove_program, public_inputs_for, verify_program, Proof};
+use zkvm_isa::Program;
+use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 struct ProveArgs {
@@ -92,8 +92,7 @@ impl ZkvmMcp {
             Proof::read_from_bytes(&bytes).map_err(|e| McpError::invalid_params(format!("bad proof bytes: {e}"), None))?;
 
         let padded = program.padded();
-        let trace = execute(&padded);
-        let pub_inputs = public_inputs_for(&padded, &trace);
+        let pub_inputs = public_inputs_for_program(&padded);
         let claimed_result = pub_inputs.result.to_string();
 
         let response = match verify_program(proof, pub_inputs) {

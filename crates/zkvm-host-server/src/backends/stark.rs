@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 
-use zkvm_isa::{execute, Program};
-use zkvm_stark::{prove_program, public_inputs_for, verify_program, Proof};
+use zkvm_isa::Program;
+use zkvm_stark::{prove_program, public_inputs_for_program, verify_program, Proof};
 
 use crate::backend::{BackendError, BackendProof, ProverBackend};
 
@@ -33,8 +33,7 @@ impl ProverBackend for StarkBackend {
     async fn verify(&self, program: &Program, proof_bytes: &[u8]) -> Result<bool, BackendError> {
         let proof = proof_from_bytes(proof_bytes).map_err(BackendError)?;
         let padded = program.padded();
-        let trace = execute(&padded);
-        let pub_inputs = public_inputs_for(&padded, &trace);
+        let pub_inputs = public_inputs_for_program(&padded);
         Ok(verify_program(proof, pub_inputs).is_ok())
     }
 }
