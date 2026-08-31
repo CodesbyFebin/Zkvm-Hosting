@@ -19,11 +19,12 @@ not hand-rolled. `script.js` is used unmodified.
    checksum/format-verified BTC and Solana addresses for direct-send (shown
    as address + QR, not wallet-connect — neither chain speaks Ethereum
    JSON-RPC). Swap in your own before publishing if these aren't yours.
-2. **GitHub Sponsors.** [`index.html`](index.html) links to
-   `github.com/sponsors/CodesbyFebin`. If Sponsors isn't enabled on that
-   account yet, that link 404s — enable it at
-   [github.com/sponsors](https://github.com/sponsors) first, or change the
-   link.
+2. **GitHub Sponsors.** Live at
+   [github.com/sponsors/CodesbyFebin](https://github.com/sponsors/CodesbyFebin) —
+   including a crypto tier via the [Drips](https://www.drips.network/)
+   integration, verified through [`FUNDING.json`](../FUNDING.json) at the repo
+   root (Drips' ownership-verification mechanism: it checks that file for the
+   `ownedBy` address before letting a repo claim crypto sponsorship).
 3. **Open Collective / Ko-fi.** Marked "coming soon" in the page — there's no
    real link yet. Add one in `index.html` under the "Give one-time" section
    once you have an account.
@@ -32,16 +33,13 @@ not hand-rolled. `script.js` is used unmodified.
    apply — not a claim that any of them have funded it. The full written case
    is [`docs/GRANT_PITCH.md`](../docs/GRANT_PITCH.md).
 
-## Other funding discovery platforms (not yet set up)
+## Other funding discovery platforms
 
-Neither of these is claimed or configured — both require signing in with your
-own GitHub identity, which is a step only you can do:
-
-- [Drips Network](https://www.drips.network/) — on-chain funding streams,
-  including automatic dependency-based splitting. See
-  ["Claim your open-source project"](https://docs.drips.network/get-support/claim-your-repository/).
-- [thanks.dev](https://thanks.dev/) — surfaces this repo to teams whose
-  dependency graphs include it, so they can fund it directly.
+- [Drips Network](https://www.drips.network/) — ownership already verified via
+  `FUNDING.json`; claiming the actual funding stream still needs a visit to
+  [Drips'](https://www.drips.network/) own site.
+- [thanks.dev](https://thanks.dev/) — not yet claimed; needs your own GitHub
+  sign-in.
 
 ## Deploying with Distributed Press
 
