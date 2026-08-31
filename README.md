@@ -1,6 +1,8 @@
 # rust-stark-zkvm
 
-![rust-stark-zkvm](site/assets/banner.svg)
+www.zkvm.host  STARK-Verifiable Virtual Machine for Provable Computation
+<img width="1983" height="793" alt="banner" src="https://github.com/user-attachments/assets/ebc8ee07-ed22-410a-b7ed-cb57967f8a0e" />
+
 
 [![ZK proof CI gate](https://github.com/CodesbyFebin/rust-stark-zkvm/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/rust-stark-zkvm/actions/workflows/zk-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -19,6 +21,7 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what this does and — just as impo
 does not cover yet, and how it relates to the larger multi-phase strategy it grew out of.
 
 ![Architecture: program.zkasm flows through zkvm-isa and zkvm-stark, then out through the CLI, HTTP server, and MCP tools, to the on-chain demo and contracts](docs/assets/architecture.svg)
+
 
 ## Layout
 
@@ -52,6 +55,8 @@ does not cover yet, and how it relates to the larger multi-phase strategy it gre
   implementation) of what making the on-chain path trustless would actually require.
 - [`examples/`](examples) — sample `.zkasm` programs, including
   [`branching.zkasm`](examples/branching.zkasm) and [`counter.zkasm`](examples/counter.zkasm).
+<img width="864" height="1821" alt="home" src="https://github.com/user-attachments/assets/c10d21ea-cc80-439f-9ab8-b5c673ff2587" />
+
 
 ## Quick start
 
@@ -157,3 +162,4 @@ a list of real grant programs this project could reasonably apply to are at
 [`funding/`](funding) — or use the "Sponsor" button GitHub shows on this repo.
 See [`docs/GRANT_PITCH.md`](docs/GRANT_PITCH.md) for the one-page case made to
 grant reviewers specifically.
+<img width="1983" height="793" alt="footer" src="https://github.com/user-attachments/assets/a2ed6424-a133-4eb1-b799-e5c236b552ca" />
