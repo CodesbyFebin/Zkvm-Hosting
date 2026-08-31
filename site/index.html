@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zkVM — a zkVM that names its own gaps</title>
+<meta name="description" content="A real STARK-verifiable virtual machine (Rust + Winterfell): conditional branching, a register file, an MCP server, on-chain attestation, and a CI proof gate. No private-witness support yet — every unfinished piece is named in the docs, not hidden." />
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f5;
+    --surface: #ffffff;
+    --ink: #14231c;
+    --ink-soft: #4b5d54;
+    --ink-faint: #7c8b82;
+    --accent: #1f6b4f;
+    --accent-dark: #123c2c;
+    --accent-soft: #e7f0ea;
+    --border: #d6ded8;
+    --code-bg: #101915;
+    --code-ink: #d9e6de;
+    --code-accent: #6fcf9e;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: 'Work Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    font-size: 16px;
+  }
+
+  a { color: var(--accent-dark); }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  header.site {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .brand span { color: var(--accent); }
+
+  nav.site a {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    margin-left: 1.4rem;
+  }
+
+  nav.site a:hover { color: var(--accent-dark); }
+
+  .hero {
+    padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    margin-bottom: 1.4rem;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-weight: 800;
+    font-size: clamp(2rem, 5.2vw, 3.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.3rem;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+
+  .hero p.lede {
+    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+    color: var(--ink-soft);
+    max-width: 58ch;
+    margin: 0 0 2rem;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 2.2rem;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.7rem 1.3rem;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .badge-row img { height: 20px; display: block; }
+
+  section {
+    padding: clamp(2.5rem, 6vw, 4rem) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    letter-spacing: -0.01em;
+    margin: 0 0 0.6rem;
+  }
+
+  .section-lede {
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 2rem;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem;
+  }
+
+  .card h3 {
+    font-family: var(--mono);
+    font-size: 1.02rem;
+    margin: 0 0 0.6rem;
+    color: var(--accent-dark);
+  }
+
+  .card p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .diagram img { width: 100%; height: auto; display: block; min-width: 600px; }
+
+  blockquote.doc-quote {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-left: 3px solid var(--code-accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.3rem;
+    margin: 0 0 1rem;
+  }
+
+  blockquote.doc-quote cite {
+    display: block;
+    margin-top: 0.6rem;
+    font-style: normal;
+    color: var(--ink-faint);
+    font-size: 0.78rem;
+  }
+
+  blockquote.doc-quote cite a { color: var(--code-accent); }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    overflow-x: auto;
+    line-height: 1.6;
+    margin: 0 0 1.2rem;
+  }
+
+  pre .comment { color: var(--ink-faint); }
+  pre .prompt { color: var(--code-accent); }
+
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9rem;
+  }
+
+  .docs-grid a {
+    display: block;
+    text-decoration: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+  }
+
+  .docs-grid a:hover { border-color: var(--accent); }
+
+  .docs-grid .doc-name {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .docs-grid .doc-desc {
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+
+  .funding-band {
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .funding-band h2 { color: var(--accent-dark); }
+
+  .funding-band p { color: var(--accent-dark); margin: 0 0 1.2rem; max-width: 46ch; }
+
+  .funding-band .chains {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent-dark);
+    opacity: 0.75;
+    margin-top: 0.8rem;
+  }
+
+  footer.site {
+    padding: 2.5rem 0 3rem;
+    border-top: 1px solid var(--border);
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+  }
+
+  footer.site a { color: var(--ink-soft); }
+
+  footer.site .foot-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    nav.site { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+    <a class="brand" href="#top">zk<span>vm</span></a>
+    <nav class="site">
+      <a href="#real">What's real</a>
+      <a href="#try">Try it</a>
+      <a href="#docs">Docs</a>
+      <a href="#funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero" id="top">
+    <span class="eyebrow">Rust · Winterfell · STARK</span>
+    <h1>A zkVM that names its own gaps.</h1>
+    <p class="lede">
+      Real conditional branching. A real register file. A STARK proof that binds to
+      one exact program and its actual execution — not just "some valid trace." And
+      a <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">roadmap</a>
+      that spends as many words on what's <em>not</em> built yet as on what is.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">View on GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">Read the roadmap</a>
+    </div>
+    <div class="badge-row">
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml"><img src="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml/badge.svg" alt="CI status"></a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/releases/tag/v0.1.0"><img src="https://img.shields.io/badge/release-v0.1.0-1f6b4f.svg" alt="v0.1.0"></a>
+      <a href="https://github.com/sponsors/CodesbyFebin"><img src="https://img.shields.io/github/sponsors/CodesbyFebin" alt="GitHub Sponsors"></a>
+    </div>
+  </section>
+
+  <section id="real">
+    <h2>What's actually real</h2>
+    <p class="section-lede">
+      Every claim below has a test in the repo that checks it — including negative
+      tests that confirm tampering gets rejected, not just that the happy path works.
+    </p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Interpreter + AIR</h3>
+        <p>An accumulator machine with real conditional control flow (<code>JZ</code>/<code>JNZ</code>)
+        and a 4-register file (<code>LOAD</code>/<code>STORE</code>). The AIR binds a proof to one
+        specific program <em>and</em> which branch it took, which register it touched —
+        not just "a valid trace exists."</p>
+      </div>
+      <div class="card">
+        <h3>STARK prover/verifier</h3>
+        <p>Built on <a href="https://github.com/facebook/winterfell">Winterfell</a>. Sound without a
+        lookup/permutation argument, because this system has no secret witness — the
+        verifier already re-executes the program, so most trace columns are asserted
+        directly instead of derived algebraically.</p>
+      </div>
+      <div class="card">
+        <h3>HTTP + MCP service</h3>
+        <p>Push a <code>.zkasm</code> program, get a proof back — over HTTP, or straight
+        from Claude Desktop / Cursor via a real MCP <code>prove</code>/<code>verify</code>
+        tool pair, verified against an actual client handshake.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <h2>How it fits together</h2>
+    <p class="section-lede">
+      One path from source to proof to on-chain settlement — no step skipped, no box
+      standing in for something unbuilt.
+    </p>
+    <div class="diagram">
+      <img src="/assets/architecture.svg" alt="program.zkasm flows through zkvm-isa and zkvm-stark, then out through the CLI, HTTP server, and MCP tools, to the on-chain demo and contracts" />
+    </div>
+  </section>
+
+  <section id="discipline">
+    <h2>The discipline, in its own words</h2>
+    <p class="section-lede">
+      Pulled directly from this repo's own docs — not paraphrased, not softened.
+    </p>
+    <blockquote class="doc-quote">
+      "What's explicitly NOT here yet" — loops, addressable memory, RISC-V
+      compatibility, formal verification, fuzzing, external audits, recursion,
+      a second proving backend. Named individually, with why each is genuinely hard.
+      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a></cite>
+    </blockquote>
+    <blockquote class="doc-quote">
+      "<code>AttestedVerifier</code> is a trusted bridge (an off-chain party attests a
+      proof checked out), not a cryptographic verifier." Stated as the headline fact,
+      not a footnote.
+      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a></cite>
+    </blockquote>
+    <blockquote class="doc-quote">
+      SP1 integration: "a real crate, a real API" — investigated, then declined, with
+      the actual reasons (518 dependencies for a hello-world, a Go FFI dependency, a
+      4-minute failing <code>cargo check</code>) written down instead of quietly dropped.
+      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></cite>
+    </blockquote>
+  </section>
+
+  <section id="try">
+    <h2>Try it</h2>
+    <p class="section-lede">Three ways in — pick whichever fits.</p>
+    <pre><span class="comment"># run the full execute -> prove -> verify -> tamper-check demo</span>
+<span class="prompt">$</span> cargo run --release -p zkvm-cli -- demo
+
+<span class="comment"># or "push code, get a proof" over HTTP</span>
+<span class="prompt">$</span> cargo run --release -p zkvm-host-server &
+<span class="prompt">$</span> cargo run --release -p zkvm-cli -- deploy examples/fibonacci_like.zkasm
+
+<span class="comment"># or from Claude Desktop / Cursor over MCP</span>
+<span class="prompt">$</span> cargo build --release -p zkvm-host-server && ./scripts/mcp_demo.sh</pre>
+    <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute#quick-start">Full quick-start in the README →</a>
+  </section>
+
+  <section id="docs">
+    <h2>Read the docs directly</h2>
+    <p class="section-lede">No separate marketing version of the truth — these are the same docs the code review checklist points to.</p>
+    <div class="docs-grid">
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">
+        <span class="doc-name">ROADMAP.md</span>
+        <span class="doc-desc">What's real, what's aspirational, what's next.</span>
+      </a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">
+        <span class="doc-name">THREAT_MODEL.md</span>
+        <span class="doc-desc">What's trustless today vs. what isn't.</span>
+      </a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">
+        <span class="doc-name">ONCHAIN_VERIFIER.md</span>
+        <span class="doc-desc">What a real cryptographic verifier would take.</span>
+      </a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">
+        <span class="doc-name">HOST_SERVICE.md</span>
+        <span class="doc-desc">The SP1 investigation, and why it stopped.</span>
+      </a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/RECURSION.md">
+        <span class="doc-name">RECURSION.md</span>
+        <span class="doc-desc">A scoped literature review, not an implementation.</span>
+      </a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/MCP.md">
+        <span class="doc-name">MCP.md</span>
+        <span class="doc-desc">Connect Claude Desktop or Cursor to the prover.</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="funding">
+    <div class="funding-band">
+      <div>
+        <h2>Fund the next slice</h2>
+        <p>Loops, addressable memory, and recursive proof compression are scoped,
+        not hand-wavy — see the grant pitch for exactly what each would take.</p>
+        <div class="cta-row" style="margin-bottom:0;">
+          <a class="btn btn-primary" href="https://github.com/sponsors/CodesbyFebin">Sponsor on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Donate crypto</a>
+        </div>
+        <p class="chains">ETH · USDT · OP · ARB · FIL · BTC · SOL — addresses and QR codes at /funding</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/GRANT_PITCH.md">Grant pitch</a>
+      <a href="mailto:codesbyfebin@gmail.com">codesbyfebin@gmail.com</a>
+    </div>
+    <p>MIT licensed. Not affiliated with RISC Zero, Succinct (SP1), StarkWare, or
+    Facebook/Meta (Winterfell) — built on top of, and honest about the difference.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Support zkVM: a real STARK-proving virtual machine, honestly scoped and CI-verified. Sponsor, donate, or fund via grants." />
+  <title>Fund zkVM</title>
+  <style>
+    @import url('./static/styles.css');
+  </style>
+</head>
+<body>
+  <div id="container">
+    <header>
+      <p class="eyebrow">zkVM · Funding</p>
+      <h1>Help keep a real STARK zkVM honestly built</h1>
+      <p class="subhead">
+        Not a pitch deck. An interpreter, a from-scratch AIR, a STARK prover/verifier
+        on <a href="https://github.com/facebook/winterfell" target="_blank" rel="noopener">Winterfell</a>,
+        an HTTP + MCP proving service, and Foundry contracts with a documented trust
+        model — all tested under CI on every push. Every gap that isn't closed yet is
+        named, not hidden.
+      </p>
+      <p class="links">
+        <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" target="_blank" rel="noopener">Source</a> ·
+        <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener">Roadmap</a> ·
+        <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/releases/tag/v0.1.0" target="_blank" rel="noopener">v0.1.0</a>
+      </p>
+    </header>
+
+    <section class="funding-block">
+      <h2>Sponsor</h2>
+      <p>Recurring or one-time support through GitHub Sponsors, including crypto via
+      the <a href="https://www.drips.network/" target="_blank" rel="noopener">Drips</a>
+      integration (see
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/FUNDING.json" target="_blank" rel="noopener">FUNDING.json</a>).</p>
+      <a class="cta cta-primary" href="https://github.com/sponsors/CodesbyFebin" target="_blank" rel="noopener">
+        Sponsor on GitHub
+      </a>
+    </section>
+
+    <section class="funding-block">
+      <h2>Give one-time</h2>
+      <div class="card-grid">
+        <div class="card card-pending">
+          <h3>Open Collective / Ko-fi <span class="badge">coming soon</span></h3>
+          <p>A fiat-friendly option for one-time or recurring gifts is being set up.</p>
+        </div>
+        <div class="card">
+          <h3>Crypto</h3>
+          <p>ETH, USDT, OP, ARB, and FIL across Ethereum, Optimism, Arbitrum, and
+          Filecoin via wallet-connect below, plus direct-send Bitcoin and Solana
+          addresses further down — no intermediary.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="donation-form" class="funding-block">
+      <h2>Donate crypto</h2>
+      <div>
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" placeholder="Enter amount" step="any" min="0" />
+      </div>
+      <div>
+        <label for="currency">Currency</label>
+        <select id="currency">
+          <option value="ETH">ETH</option>
+          <option value="USDT">USDT (Ethereum Mainnet)</option>
+          <option value="USDT_OP">USDT (Optimism)</option>
+          <option value="USDT_ARB">USDT (Arbitrum)</option>
+          <option value="OP">OP (Optimism)</option>
+          <option value="ARB">ARB (Arbitrum)</option>
+          <option value="FIL">FIL (Filecoin EVM Mainnet)</option>
+        </select>
+      </div>
+      <div>
+        <button id="connectWallet">Connect Wallet</button>
+        <button id="donateButton" disabled>Donate</button>
+      </div>
+      <section id="status"></section>
+      <section id="qrCode">
+        <div id="qrCodeContainer"></div>
+      </section>
+    </section>
+
+    <section class="funding-block">
+      <h2>Bitcoin &amp; Solana</h2>
+      <p>Neither chain speaks the Ethereum JSON-RPC the wallet-connect flow above
+      uses, so these are direct-send addresses, not part of that flow — copy the
+      address or scan the QR code from your own wallet.</p>
+      <div class="card-grid" id="directAddresses"></div>
+    </section>
+
+    <section class="funding-block">
+      <h2>Grants</h2>
+      <p>This project fits the scope of a few real, public funding programs. See
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/GRANT_PITCH.md" target="_blank" rel="noopener">docs/GRANT_PITCH.md</a>
+      for the full one-page case, or reach out directly —
+      <a href="mailto:codesbyfebin@gmail.com">codesbyfebin@gmail.com</a>.</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://esp.ethereum.foundation/" target="_blank" rel="noopener">Ethereum Foundation ESP</a></h3>
+          <p>Funds core infra and zk tooling. Relevant here: a from-scratch AIR with a
+          documented no-secret-witness soundness argument, and an on-chain verifier
+          whose trust model is written down rather than glossed over
+          (<a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md" target="_blank" rel="noopener">THREAT_MODEL.md</a>).</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://research.protocol.ai/" target="_blank" rel="noopener">Protocol Labs Research</a></h3>
+          <p>Verifiable-compute research is directly in scope. The honest gap analysis
+          in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/RECURSION.md" target="_blank" rel="noopener">RECURSION.md</a>
+          — what real proof recursion would take, not a claim that it's already done — is
+          exactly the kind of scoping this kind of program tends to want to see.</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://www.gitcoin.co/grants" target="_blank" rel="noopener">Gitcoin Grants</a></h3>
+          <p>Public-goods, quadratic-funding round for open source. A small, testable,
+          honestly-documented zkVM is a reasonable fit for a round aimed at public
+          infrastructure rather than products.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" target="_blank" rel="noopener">zkVM on GitHub</a>
+        ·
+        <a href="mailto:codesbyfebin@gmail.com">codesbyfebin@gmail.com</a>
+      </p>
+      <div class="dp-credit">
+        <p>Crypto donation widget deployed with</p>
+        <a href="//distributed.press" target="_blank" rel="noopener">
+          <img
+            alt="Distributed Press"
+            src="//distributed.press/img/logos/logo-distributedpress-grey.png"
+            width="123" height="auto"
+          />
+        </a>
+        <p class="fineprint">
+          Donation widget code adapted from
+          <a href="https://github.com/hyphacoop/distributed-uncensorable-frontend" target="_blank" rel="noopener">hyphacoop/distributed-uncensorable-frontend</a>
+          (MIT License, © Hypha Worker Co-operative).
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="./static/js/ethers.umd.min.js"></script>
+  <script src="./static/js/qrcode.min.js"></script>
+  <script src="./script.js" type="module"></script>
+  <script src="./config.js"></script>
+  <script>
+    // Renders the direct-send (non-EVM) address cards from `directAddresses`
+    // in config.js. Kept separate from script.js (the vendored wallet-connect
+    // widget) since this has nothing to do with that flow.
+    (function renderDirectAddresses() {
+      const container = document.getElementById('directAddresses')
+      Object.entries(directAddresses).forEach(([symbol, { network, address }]) => {
+        const card = document.createElement('div')
+        card.className = 'card'
+        card.innerHTML = `
+          <h3>${symbol}</h3>
+          <p class="fineprint">${network} only</p>
+          <p class="address-mono"></p>
+          <div class="qr-slot"></div>
+        `
+        card.querySelector('.address-mono').textContent = address
+        container.appendChild(card)
+        new QRCode(card.querySelector('.qr-slot'), { text: address, width: 112, height: 112 })
+      })
+    })()
+  </script>
+</body>
+</html>
