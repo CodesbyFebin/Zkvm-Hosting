@@ -1,6 +1,6 @@
 # zkVM (Phase 1 MVP)
 
-[![ZK proof CI gate](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml)
+[![ZK proof CI gate](https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2.svg)](https://github.com/sponsors/CodesbyFebin)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/CodesbyFebin)](https://github.com/sponsors/CodesbyFebin)
