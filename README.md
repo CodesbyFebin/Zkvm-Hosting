@@ -2,6 +2,8 @@
 
 [![ZK proof CI gate](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/Zkvm-Hosting/actions/workflows/zk-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2.svg)](https://github.com/sponsors/CodesbyFebin)
+[![Funding](https://img.shields.io/badge/funding-ETH%20%C2%B7%20BTC%20%C2%B7%20SOL%20%C2%B7%20FIL-1f6b4f.svg)](funding)
 
 A small, real zero-knowledge virtual machine: an interpreter, a STARK arithmetization
 (AIR), and a prover/verifier built on [Winterfell](https://github.com/facebook/winterfell).
@@ -147,6 +149,8 @@ See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
 ## Funding
 
-Sponsorship, one-time crypto donations, and a list of real grant programs this
-project could reasonably apply to are at [`funding/`](funding) — or use the
-"Sponsor" button GitHub shows on this repo.
+Sponsorship, one-time crypto donations (ETH, USDT, OP, ARB, FIL, BTC, SOL), and
+a list of real grant programs this project could reasonably apply to are at
+[`funding/`](funding) — or use the "Sponsor" button GitHub shows on this repo.
+See [`docs/GRANT_PITCH.md`](docs/GRANT_PITCH.md) for the one-page case made to
+grant reviewers specifically.

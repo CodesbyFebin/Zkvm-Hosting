@@ -29,7 +29,19 @@ not hand-rolled. `script.js` is used unmodified.
    once you have an account.
 4. **Grants section.** Links to real external programs (Ethereum Foundation
    ESP, Protocol Labs Research, Gitcoin Grants) as places this project could
-   apply — not a claim that any of them have funded it.
+   apply — not a claim that any of them have funded it. The full written case
+   is [`docs/GRANT_PITCH.md`](../docs/GRANT_PITCH.md).
+
+## Other funding discovery platforms (not yet set up)
+
+Neither of these is claimed or configured — both require signing in with your
+own GitHub identity, which is a step only you can do:
+
+- [Drips Network](https://www.drips.network/) — on-chain funding streams,
+  including automatic dependency-based splitting. See
+  ["Claim your open-source project"](https://docs.drips.network/get-support/claim-your-repository/).
+- [thanks.dev](https://thanks.dev/) — surfaces this repo to teams whose
+  dependency graphs include it, so they can fund it directly.
 
 ## Deploying with Distributed Press
 
