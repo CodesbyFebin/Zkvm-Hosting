@@ -1,0 +1,4 @@
+# Third-party libraries vendored into funding/ (see funding/THIRD_PARTY_NOTICES.md).
+# Without this, GitHub's language detector counts purify.js's 65KB as this
+# repo's own code and reports JavaScript, not Rust, as the primary language.
+funding/static/js/* linguist-vendored
