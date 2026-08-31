@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">API design · case study</span>
   <h1>A Code Review Caught a Real API Footgun. Here's the Fix.</h1>
   <p class="dek">A function took a program and a trace, and quietly ignored the program. Nothing in this repo ever misused it — but nothing in the type system stopped a future caller from doing so, either.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
 
   <p>An external review of this repo flagged a specific function signature as a footgun:</p>
 
@@ -89,7 +89,7 @@ let pub_inputs = public_inputs_for(&padded, &trace);</code></pre>
   <p class="callout"><strong>The pattern worth taking from this:</strong> a footgun that's never been fired isn't nothing — it's a bug waiting for the next caller who doesn't already know the unwritten rule. Fixing the type instead of the documentation is usually the smaller, more permanent change.</p>
 
   <div class="post-footer">
-    Full diff context: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/CHANGELOG.md">CHANGELOG.md</a>, "Unreleased" section.
+    Full diff context: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/CHANGELOG.md">CHANGELOG.md</a>, "Unreleased" section.
   </div>
 </article>
 
@@ -98,8 +98,8 @@ let pub_inputs = public_inputs_for(&padded, &trace);</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

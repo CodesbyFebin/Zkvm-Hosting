@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">Scoping</span>
   <h1>Why Forward-Only Jumps, and What Loops Would Actually Require</h1>
   <p class="dek">"No loops" is the single biggest capability gap listed in this project's roadmap. Here's the actual, specific reason it's there, and why it's a bigger change than it sounds.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a></p>
 
   <p><code>JZ</code> and <code>JNZ</code> are real conditional jumps — the parser resolves label targets, the interpreter tracks a runtime program counter separate from the static row index, and the AIR asserts which row actually ran via the <code>active</code> flag (see <a href="/blog/no-secret-witness/">how that assertion is made sound</a>). What they can't do is jump backward. That's not an oversight; it's load-bearing for everything else about how this VM's trace works.</p>
 
@@ -59,10 +59,10 @@
   <h2>The part that doesn't change</h2>
   <p>Here's the thing worth being specific about: the "verifier re-executes and asserts everything" trick from <a href="/blog/no-secret-witness/">the soundness post</a> still works with loops. The verifier can run the interpreter itself regardless of how many iterations a loop takes — re-execution doesn't care about trace-length mechanics. What's genuinely new work is the trace-length selection and padding scheme, not the soundness argument underneath it.</p>
 
-  <p>That's specifically why this is <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">first on the suggested-next-slice list</a>, ahead of memory or RISC-V compatibility: it's a real, scoped, self-contained problem, distinct from whether the underlying soundness technique holds — which it does.</p>
+  <p>That's specifically why this is <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">first on the suggested-next-slice list</a>, ahead of memory or RISC-V compatibility: it's a real, scoped, self-contained problem, distinct from whether the underlying soundness technique holds — which it does.</p>
 
   <div class="post-footer">
-    Current state and the full next-steps list: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a>.
+    Current state and the full next-steps list: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a>.
   </div>
 </article>
 
@@ -71,8 +71,8 @@
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

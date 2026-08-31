@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">MCP</span>
   <h1>Connecting Claude to a Real STARK Prover via MCP</h1>
   <p class="dek">A cryptographic prover exposed as two MCP tools: prove and verify. Built against rmcp's real API, verified against its own examples rather than guessed — and the same never-trust-the-prover's-own-claim discipline applies here too.</p>
-  <p class="meta">2026-08-31 · rmcp 3.1 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/mcp.rs">crates/zkvm-host-server/src/mcp.rs</a></p>
+  <p class="meta">2026-08-31 · rmcp 3.1 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-host-server/src/mcp.rs">crates/zkvm-host-server/src/mcp.rs</a></p>
 
   <p>MCP (Model Context Protocol) is how an AI assistant calls tools directly rather than a human copy-pasting CLI output into a chat window. This project exposes exactly two tools over it — <code>prove</code> and <code>verify</code> — running on their own port, separate from the plain HTTP API.</p>
 
@@ -72,10 +72,10 @@ match verify_program(proof, pub_inputs) { ... }</code></pre>
   <p>An MCP client calling <code>verify</code> isn't trusting whatever the <code>prove</code> call (possibly from a different, untrusted source) claimed — it's getting an independent check, the same trust boundary <a href="/blog/no-secret-witness/">the rest of this project</a> relies on everywhere else.</p>
 
   <h2>Verified, not assumed</h2>
-  <p>The claim "this actually works as an MCP server" isn't just "it compiles" — it's confirmed by capturing a real transcript against a running server: a real <code>initialize</code> handshake, followed by real <code>tools/call</code> invocations for both <code>prove</code> and <code>verify</code>, via <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/scripts/mcp_demo.sh">scripts/mcp_demo.sh</a>. That script exists specifically so "the MCP integration works" is a thing that gets exercised, not just declared.</p>
+  <p>The claim "this actually works as an MCP server" isn't just "it compiles" — it's confirmed by capturing a real transcript against a running server: a real <code>initialize</code> handshake, followed by real <code>tools/call</code> invocations for both <code>prove</code> and <code>verify</code>, via <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/scripts/mcp_demo.sh">scripts/mcp_demo.sh</a>. That script exists specifically so "the MCP integration works" is a thing that gets exercised, not just declared.</p>
 
   <div class="post-footer">
-    Setup instructions for Claude Desktop / Cursor: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/MCP.md">docs/MCP.md</a>.
+    Setup instructions for Claude Desktop / Cursor: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/MCP.md">docs/MCP.md</a>.
   </div>
 </article>
 
@@ -84,8 +84,8 @@ match verify_program(proof, pub_inputs) { ... }</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

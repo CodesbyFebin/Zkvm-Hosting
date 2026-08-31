@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">AIR design</span>
   <h1>A Register File Without an Algebraic Mux</h1>
   <p class="dek">Four registers, addressed by <code>LOAD</code>/<code>STORE</code>. The obvious way to prove "this instruction touched register 2, not register 0" needs a selection argument. This VM asserts it instead — and tests specifically that lying about it gets caught.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
 
   <p>Adding a register file to a STARK VM is a natural second step after straight-line arithmetic — <code>examples/counter.zkasm</code> is the first program that needs to hold a value across unrelated computation. The obvious design question: when a row executes <code>STORE r2</code>, how does the AIR prove that register 2, specifically, got updated, and the other three didn't?</p>
 
@@ -77,7 +77,7 @@ fn rejects_a_claimed_register_selector_that_does_not_match_the_proof() {
   <p>Four registers is a small, deliberately narrow slice: enough to prove something needs more than one live value (the accumulator alone isn't sufficient once a program has to hold a result across unrelated arithmetic), not enough to look like general memory. <code>reg_sel</code> being one-hot over a <em>fixed</em> set of four only works because the register a given instruction touches is baked into the instruction at parse time — <code>STORE r2</code> is syntactically fixed, not a runtime-computed address. That's exactly the boundary <a href="/blog/no-secret-witness/">the soundness-trick post</a> flags: real memory, where the address is itself a trace value, is a materially different problem.</p>
 
   <div class="post-footer">
-    Full source and tests: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>, <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/examples/counter.zkasm">examples/counter.zkasm</a>.
+    Full source and tests: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>, <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/examples/counter.zkasm">examples/counter.zkasm</a>.
   </div>
 </article>
 
@@ -86,8 +86,8 @@ fn rejects_a_claimed_register_selector_that_does_not_match_the_proof() {
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

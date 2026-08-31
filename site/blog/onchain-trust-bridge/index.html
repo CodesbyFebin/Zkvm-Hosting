@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">On-chain · trust model</span>
   <h1>An Honest On-Chain Verifier: What AttestedVerifier Actually Guarantees</h1>
   <p class="dek">A real STARK verifier in Solidity is a large undertaking. This project doesn't have one — and names the contract that stands in for it accordingly.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/contracts/src/AttestedVerifier.sol">contracts/src/AttestedVerifier.sol</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/contracts/src/AttestedVerifier.sol">contracts/src/AttestedVerifier.sol</a></p>
 
   <p>The <code>contracts/</code> directory has four Solidity files: <code>ProofOrchestrator.sol</code>, <code>IProofVerifier.sol</code>, <code>AttestedVerifier.sol</code>, and <code>UnimplementedStarkVerifier.sol</code>. The last two are both real implementations of the same interface, and the names are the point: one reverts, honestly, because it doesn't check anything; the other checks something, but it isn't the STARK.</p>
 
@@ -66,12 +66,12 @@
   </ul>
 
   <h2>What a real verifier would require</h2>
-  <p>Making this trustless means porting FRI, Merkle proof verification, and the underlying field arithmetic into Solidity — or wrapping the STARK in a SNARK with an existing efficient EVM verifier, or targeting a chain/precompile that can check this proof system natively. Any of those is a genuine, large cryptographic engineering project on its own, not a follow-up PR. <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a> lays out the specific paths and what each would need.</p>
+  <p>Making this trustless means porting FRI, Merkle proof verification, and the underlying field arithmetic into Solidity — or wrapping the STARK in a SNARK with an existing efficient EVM verifier, or targeting a chain/precompile that can check this proof system natively. Any of those is a genuine, large cryptographic engineering project on its own, not a follow-up PR. <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a> lays out the specific paths and what each would need.</p>
 
   <p class="callout"><strong>The actual claim this project makes today:</strong> off-chain STARK verification, on-chain attestation, with the attester's single key as the one named, documented, testable trust assumption. Not "on-chain STARK verification" — that phrase doesn't appear anywhere in this repo's own docs for a reason.</p>
 
   <div class="post-footer">
-    Full trust model: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>. What a real verifier needs: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a>.
+    Full trust model: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>. What a real verifier needs: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a>.
   </div>
 </article>
 
@@ -80,8 +80,8 @@
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

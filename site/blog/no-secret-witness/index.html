@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">AIR design</span>
   <h1>Why This zkVM's Soundness Doesn't Need a Lookup Argument</h1>
   <p class="dek">Branch outcomes and register accesses are usually the hard part of a STARK AIR. Here they're asserted directly, for one specific reason this post spells out precisely — including where the reason stops applying.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
 
   <p>Most STARK-based VMs need an algebraic gadget to prove that a program's control flow was followed correctly: an is-zero check to derive a branch outcome, a permutation argument to prove a memory access hit the right address, a mux to select which register a load or store touched. Building those gadgets correctly is a large fraction of the actual work in a STARK VM.</p>
 
@@ -69,13 +69,13 @@ verify_program(proof, pub_inputs)</code></pre>
   <p>This is the part worth being precise about, because it's easy to overstate. The trick works specifically because nothing in this system is hidden from the verifier. Two changes would break it:</p>
   <ol>
     <li><strong>Private inputs.</strong> If a program could take a witness the verifier doesn't see, the verifier can no longer just re-execute to find "the" correct trace — there could be many traces consistent with the public claim, and picking the right one requires exactly the algebraic machinery this system currently avoids.</li>
-    <li><strong>Dynamic addressing.</strong> Today's <code>LOAD</code>/<code>STORE</code> address one of four statically-named registers — the instruction itself says which one. Real memory, where the address is a runtime value (<code>LD r0, [r1]</code>), is a different problem: the verifier still knows the correct <em>value</em> at every access by re-executing, but proving <em>which address</em> was touched, when that address is itself a trace value rather than a constant baked into the instruction, needs either a permutation argument or a fresh argument for why one still isn't needed. That's an open question, not a solved one — see the note in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a>.</li>
+    <li><strong>Dynamic addressing.</strong> Today's <code>LOAD</code>/<code>STORE</code> address one of four statically-named registers — the instruction itself says which one. Real memory, where the address is a runtime value (<code>LD r0, [r1]</code>), is a different problem: the verifier still knows the correct <em>value</em> at every access by re-executing, but proving <em>which address</em> was touched, when that address is itself a trace value rather than a constant baked into the instruction, needs either a permutation argument or a fresh argument for why one still isn't needed. That's an open question, not a solved one — see the note in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a>.</li>
   </ol>
 
-  <p class="callout"><strong>The honest framing:</strong> this makes the system a STARK-verifiable virtual machine for public, deterministic computation — not a zero-knowledge VM in the RISC Zero/SP1 sense, which is built specifically to hide a private witness. That distinction matters enough that it shapes how this project describes itself; see the <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">threat model</a> for the fuller picture of what is and isn't trustless here.</p>
+  <p class="callout"><strong>The honest framing:</strong> this makes the system a STARK-verifiable virtual machine for public, deterministic computation — not a zero-knowledge VM in the RISC Zero/SP1 sense, which is built specifically to hide a private witness. That distinction matters enough that it shapes how this project describes itself; see the <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/THREAT_MODEL.md">threat model</a> for the fuller picture of what is and isn't trustless here.</p>
 
   <div class="post-footer">
-    Full source and tests: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>. Related: <a href="/blog/registers-without-a-mux/">how the register file uses the same trick</a>.
+    Full source and tests: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>. Related: <a href="/blog/registers-without-a-mux/">how the register file uses the same trick</a>.
   </div>
 </article>
 
@@ -84,8 +84,8 @@ verify_program(proof, pub_inputs)</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">Investigation</span>
   <h1>We Investigated Adding an SP1 Backend. Here's Why We Didn't.</h1>
   <p class="dek">This project's HTTP server has a <code>ProverBackend</code> trait built specifically to support more than one proving backend. SP1 was the obvious first candidate to add. Here's what actually happened when we tried.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></p>
 
   <p>"Multi-VM router" is easy to claim and hard to actually build — most projects that say it either have one real backend and N stubs, or haven't tried adding the second one yet. Before writing that claim into this project's own docs, we tried adding SP1 as a real second backend, verified every API claim against SP1's actual source at a pinned version (not assumed from memory), and wrote down exactly why it didn't ship.</p>
 
@@ -65,12 +65,12 @@
   <h2>The more fundamental mismatch</h2>
   <p>Even past the dependency weight, there's an architectural problem that no amount of patience with the build fixes: <strong>SP1 proves compiled RISC-V ELF binaries.</strong> This project's ISA is <code>.zkasm</code> — a custom, minimal instruction set with no RISC-V compatibility layer. Wiring SP1 in isn't "add a backend," it's "build a compiler from <code>.zkasm</code> to RISC-V first," which is a different, much larger project than a proving-backend integration.</p>
 
-  <p>That's the fork this investigation actually surfaced: keep extending <code>.zkasm</code> as its own ISA and own that stack end to end, or treat <code>.zkasm</code> as a demo fixture and make the router the real product, accepting whatever ISA a backend brings. This project chose the former — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a> for the reasoning. The <code>ProverBackend</code> trait and <code>ProverRouter</code> stay in the codebase either way — future backends aren't ruled out — but they'd need to speak this ISA's semantics, not plug in as-is.</p>
+  <p>That's the fork this investigation actually surfaced: keep extending <code>.zkasm</code> as its own ISA and own that stack end to end, or treat <code>.zkasm</code> as a demo fixture and make the router the real product, accepting whatever ISA a backend brings. This project chose the former — see <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a> for the reasoning. The <code>ProverBackend</code> trait and <code>ProverRouter</code> stay in the codebase either way — future backends aren't ruled out — but they'd need to speak this ISA's semantics, not plug in as-is.</p>
 
   <div class="callout"><strong>What's real today:</strong> one proving backend (<code>stark</code>, this project's own Winterfell-based prover) and one honestly-labeled routing stub (<code>mock-echo</code>), which refuses to verify anything rather than faking success. <code>GET /v1/backends</code> reports exactly that — a checkable claim, not marketing copy.</div>
 
   <div class="post-footer">
-    Full writeup: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a>.
+    Full writeup: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a>.
   </div>
 </article>
 
@@ -79,8 +79,8 @@
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

@@ -6,4 +6,4 @@ members = ["crates/zkvm-isa", "crates/zkvm-stark", "crates/zkvm-cli", "crates/zk
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/CodesbyFebin/Zkvm-Hosting"
+repository = "https://github.com/CodesbyFebin/rust-stark-zkvm"

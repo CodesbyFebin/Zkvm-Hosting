@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">HTTP service · security</span>
   <h1>Hardening a STARK Proving Service: Real Benchmarks, Not Guesses</h1>
   <p class="dek">A public "push a program, get a proof" endpoint has an obvious problem: proving is CPU-intensive, and nothing was stopping a small request from asking for a lot of it. Here's what got measured before picking a number.</p>
-  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a></p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a></p>
 
   <p>An external review of this repo correctly flagged that <code>/v1/proofs</code> had no request body limit, no program-size cap, no timeout, and no concurrency limit — a small HTTP request could ask the server to prove an arbitrarily large program, tying up CPU and memory with no backstop. That's a real gap. Fixing it properly meant not guessing at a number.</p>
 
@@ -80,10 +80,10 @@ pub const MAX_PROGRAM_INSTRUCTIONS: usize = 2_000;</code></pre>
 
   <p>The instruction-count check itself lives in one place (<code>check_program_size</code>) and is called at every entry point that can trigger proving or verification work — the plain <code>/v1/proofs</code>/<code>/v1/verify</code> handlers, the <code>/v1/backends/*</code> router path, and the MCP <code>prove</code>/<code>verify</code> tools — rather than trusting each call site to remember to add it separately.</p>
 
-  <p class="callout"><strong>What's still not covered:</strong> auth/API keys, per-tenant accounting, structured audit logs, and metrics/tracing don't exist yet. A queued request that never gets served still doesn't turn into an explicit 503 today. These are named gaps, not silent ones — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>.</p>
+  <p class="callout"><strong>What's still not covered:</strong> auth/API keys, per-tenant accounting, structured audit logs, and metrics/tracing don't exist yet. A queued request that never gets served still doesn't turn into an explicit 503 today. These are named gaps, not silent ones — see <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>.</p>
 
   <div class="post-footer">
-    Full source: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a>, tests in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/tests/api.rs">tests/api.rs</a>.
+    Full source: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a>, tests in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-host-server/tests/api.rs">tests/api.rs</a>.
   </div>
 </article>
 
@@ -92,8 +92,8 @@ pub const MAX_PROGRAM_INSTRUCTIONS: usize = 2_000;</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

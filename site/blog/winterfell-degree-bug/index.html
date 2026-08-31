@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -39,7 +39,7 @@
   <span class="eyebrow">Winterfell · debugging</span>
   <h1>A Winterfell Debug-Mode Assertion That Isn't a Soundness Bug</h1>
   <p class="dek">This repo's README tells you to run <code>cargo test --release</code>, not plain <code>cargo test</code>. That's an unusual instruction for a cryptographic project, and it deserves the exact reproduction, not just an assurance.</p>
-  <p class="meta">2026-08-31 · Winterfell 0.13.1 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+  <p class="meta">2026-08-31 · Winterfell 0.13.1 · <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
 
   <p>Running <code>cargo test</code> (debug mode, no <code>--release</code>) against this workspace fails three tests with the same panic, from inside Winterfell itself:</p>
 
@@ -67,7 +67,7 @@ actual:   [ 14,   0,   0,   0,   0]</code></pre>
   <p>The honest state: this is upstream-worthy as a minimal reproduction if anyone wants to raise it with Winterfell directly, and this project runs its real test suite, CI included, under <code>--release</code> — which is a positive claim about how this codebase is tested, made precisely rather than glossed over.</p>
 
   <div class="post-footer">
-    Full context: the doc comment above <code>VmAir::evaluate_transition</code> in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>.
+    Full context: the doc comment above <code>VmAir::evaluate_transition</code> in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>.
   </div>
 </article>
 
@@ -76,8 +76,8 @@ actual:   [ 14,   0,   0,   0,   0]</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>

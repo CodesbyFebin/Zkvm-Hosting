@@ -9,8 +9,8 @@ explicitly not built yet, so a contribution lands where it's actually useful.
 You need [Rust](https://rustup.rs) and [Foundry](https://getfoundry.sh):
 
 ```bash
-git clone --recurse-submodules https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute.git
-cd zkvm-rust-stark-verifiable-compute
+git clone --recurse-submodules https://github.com/CodesbyFebin/rust-stark-zkvm.git
+cd rust-stark-zkvm
 cargo build --release
 cargo test --release --workspace   # see "why --release" below
 cd contracts && forge test

@@ -30,7 +30,7 @@
     <div class="nav-links">
       <a href="/blog/">Blog</a>
       <a href="/dashboard/">Dashboard</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
     </div>
   </div>
 </nav>
@@ -57,7 +57,7 @@ min: 5.19ms   avg: 5.51ms</code></pre>
   <h2>Where the number stops applying</h2>
   <p>The <a href="/blog/hardening-a-prover-api/">proving-time benchmarks</a> already show proving cost growing worse than linearly with trace size (2,000 instructions: ~6s; 4,000: ~32s). Verification scales differently than proving — but re-execution, which this system's verifier always does first, scales linearly with instruction count regardless of the STARK's own asymptotics. At the 2,000-instruction ceiling this project's HTTP service now enforces, verification includes re-executing 2,000 instructions before the cryptographic check even starts — a meaningfully different number than 5.5ms, and one that hasn't been measured and published here yet.</p>
 
-  <p class="callout"><strong>The gap this leaves:</strong> no benchmark suite exists yet correlating instruction count with proving time, verify time, proof size, and memory, across the range this system actually supports. That's explicitly listed as unfinished work — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a> — rather than a number quietly assumed to hold everywhere it's cited.</p>
+  <p class="callout"><strong>The gap this leaves:</strong> no benchmark suite exists yet correlating instruction count with proving time, verify time, proof size, and memory, across the range this system actually supports. That's explicitly listed as unfinished work — see <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a> — rather than a number quietly assumed to hold everywhere it's cited.</p>
 
   <div class="post-footer">
     Related: <a href="/blog/hardening-a-prover-api/">how the proving-time numbers shaped the HTTP service's instruction-count limit</a>.
@@ -69,8 +69,8 @@ min: 5.19ms   avg: 5.51ms</code></pre>
     <span>zkvm.host</span>
     <div style="display:flex;gap:18px;">
       <a href="/blog/">All posts</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
     </div>
   </div>
 </footer>
