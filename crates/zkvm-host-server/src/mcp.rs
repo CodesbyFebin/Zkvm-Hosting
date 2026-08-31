@@ -22,10 +22,14 @@ use hyper_util::{
 };
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{CallToolResult, ContentBlock, Implementation, ProtocolVersion, ServerCapabilities, ServerInfo},
-    schemars,
-    tool, tool_handler, tool_router,
-    transport::streamable_http_server::{session::local::LocalSessionManager, StreamableHttpService},
+    model::{
+        CallToolResult, ContentBlock, Implementation, ProtocolVersion, ServerCapabilities,
+        ServerInfo,
+    },
+    schemars, tool, tool_handler, tool_router,
+    transport::streamable_http_server::{
+        session::local::LocalSessionManager, StreamableHttpService,
+    },
     ErrorData as McpError, ServerHandler,
 };
 
@@ -59,14 +63,21 @@ pub struct ZkvmMcp {
 #[tool_router]
 impl ZkvmMcp {
     fn new() -> Self {
-        Self { tool_router: Self::tool_router() }
+        Self {
+            tool_router: Self::tool_router(),
+        }
     }
 
     #[tool(
         description = "Generate a real STARK proof that a .zkasm program executes to its claimed result. Returns the base64-encoded proof and the (initial, result) public inputs."
     )]
-    async fn prove(&self, Parameters(args): Parameters<ProveArgs>) -> Result<CallToolResult, McpError> {
-        let program = Program::parse(&args.program).map_err(|e| McpError::invalid_params(e, None))?;
+    async fn prove(
+        &self,
+        Parameters(args): Parameters<ProveArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        let program =
+            Program::parse(&args.program).map_err(|e| McpError::invalid_params(e, None))?;
+        crate::check_program_size(&program).map_err(|e| McpError::invalid_params(e, None))?;
         let (proof, pub_inputs) =
             prove_program(&program).map_err(|e| McpError::internal_error(e, None))?;
         let bytes = proof.to_bytes();
@@ -77,19 +88,26 @@ impl ZkvmMcp {
             "proof_bytes": bytes.len(),
             "proof_base64": STANDARD.encode(bytes),
         });
-        Ok(CallToolResult::success(vec![ContentBlock::text(response.to_string())]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            response.to_string(),
+        )]))
     }
 
     #[tool(
         description = "Verify a proof (from the prove tool) against the exact .zkasm program it claims to be for. Re-executes the program locally to know what to check -- it never trusts the proof's own claims."
     )]
-    async fn verify(&self, Parameters(args): Parameters<VerifyArgs>) -> Result<CallToolResult, McpError> {
-        let program = Program::parse(&args.program).map_err(|e| McpError::invalid_params(e, None))?;
+    async fn verify(
+        &self,
+        Parameters(args): Parameters<VerifyArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        let program =
+            Program::parse(&args.program).map_err(|e| McpError::invalid_params(e, None))?;
+        crate::check_program_size(&program).map_err(|e| McpError::invalid_params(e, None))?;
         let bytes = STANDARD
             .decode(&args.proof_base64)
             .map_err(|e| McpError::invalid_params(format!("bad base64: {e}"), None))?;
-        let proof =
-            Proof::read_from_bytes(&bytes).map_err(|e| McpError::invalid_params(format!("bad proof bytes: {e}"), None))?;
+        let proof = Proof::read_from_bytes(&bytes)
+            .map_err(|e| McpError::invalid_params(format!("bad proof bytes: {e}"), None))?;
 
         let padded = program.padded();
         let pub_inputs = public_inputs_for_program(&padded);
@@ -99,7 +117,9 @@ impl ZkvmMcp {
             Ok(()) => serde_json::json!({ "valid": true, "result": claimed_result }),
             Err(e) => serde_json::json!({ "valid": false, "error": e.to_string() }),
         };
-        Ok(CallToolResult::success(vec![ContentBlock::text(response.to_string())]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            response.to_string(),
+        )]))
     }
 }
 
@@ -131,7 +151,9 @@ pub async fn serve(addr: SocketAddr) -> std::io::Result<()> {
         let io = TokioIo::new(stream);
         let service = service.clone();
         tokio::spawn(async move {
-            let _ = Builder::new(TokioExecutor::default()).serve_connection(io, service).await;
+            let _ = Builder::new(TokioExecutor::default())
+                .serve_connection(io, service)
+                .await;
         });
     }
 }

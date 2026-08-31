@@ -60,8 +60,12 @@ fn cmd_run(args: &[String]) -> Result<(), String> {
 }
 
 fn cmd_prove(args: &[String]) -> Result<(), String> {
-    let path = args.first().ok_or("usage: zkvm prove <program.zkasm> <out.proof>")?;
-    let out = args.get(1).ok_or("usage: zkvm prove <program.zkasm> <out.proof>")?;
+    let path = args
+        .first()
+        .ok_or("usage: zkvm prove <program.zkasm> <out.proof>")?;
+    let out = args
+        .get(1)
+        .ok_or("usage: zkvm prove <program.zkasm> <out.proof>")?;
     let program = read_program(path)?;
 
     let (proof, pub_inputs) =
@@ -78,7 +82,9 @@ fn cmd_prove(args: &[String]) -> Result<(), String> {
 }
 
 fn cmd_verify(args: &[String]) -> Result<(), String> {
-    let path = args.first().ok_or("usage: zkvm verify <program.zkasm> <in.proof>")?;
+    let path = args
+        .first()
+        .ok_or("usage: zkvm verify <program.zkasm> <in.proof>")?;
     let proof_path = args
         .get(1)
         .ok_or("usage: zkvm verify <program.zkasm> <in.proof>")?;
@@ -160,7 +166,11 @@ fn cmd_demo() -> Result<(), String> {
 
     let program = Program::new(
         5,
-        vec![Instruction::Add(3), Instruction::Mul(2), Instruction::Sub(4)],
+        vec![
+            Instruction::Add(3),
+            Instruction::Mul(2),
+            Instruction::Sub(4),
+        ],
     );
     println!("program: initial=5, ADD 3, MUL 2, SUB 4   (=> ((5+3)*2)-4)");
 

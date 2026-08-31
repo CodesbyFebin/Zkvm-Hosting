@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>An Honest On-Chain Verifier: What AttestedVerifier Actually Guarantees</title>
+<meta name="description" content="This contract is named AttestedVerifier, not StarkVerifier, on purpose. What it actually checks on-chain, what it trusts off-chain, and what a real cryptographic verifier would additionally require.">
+<link rel="canonical" href="https://www.zkvm.host/blog/onchain-trust-bridge/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "An Honest On-Chain Verifier: What AttestedVerifier Actually Guarantees",
+  "description": "What AttestedVerifier.sol actually checks on-chain, what it trusts off-chain, and what a real cryptographic verifier would require instead.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/onchain-trust-bridge/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">On-chain · trust model</span>
+  <h1>An Honest On-Chain Verifier: What AttestedVerifier Actually Guarantees</h1>
+  <p class="dek">A real STARK verifier in Solidity is a large undertaking. This project doesn't have one — and names the contract that stands in for it accordingly.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/contracts/src/AttestedVerifier.sol">contracts/src/AttestedVerifier.sol</a></p>
+
+  <p>The <code>contracts/</code> directory has four Solidity files: <code>ProofOrchestrator.sol</code>, <code>IProofVerifier.sol</code>, <code>AttestedVerifier.sol</code>, and <code>UnimplementedStarkVerifier.sol</code>. The last two are both real implementations of the same interface, and the names are the point: one reverts, honestly, because it doesn't check anything; the other checks something, but it isn't the STARK.</p>
+
+  <h2>What UnimplementedStarkVerifier actually does</h2>
+  <p>Exactly what its name says — every call reverts. It exists so <code>ProofOrchestrator</code> has a default verifier that fails closed rather than either not compiling or silently accepting anything, and so the honest state ("no real on-chain STARK verifier exists yet") is a compileable, testable fact rather than a gap that only shows up in documentation.</p>
+
+  <h2>What AttestedVerifier actually does</h2>
+  <p>It checks an ECDSA signature from one designated attester key over the claimed proof result — not the STARK proof itself. The actual trust chain is:</p>
+  <ol>
+    <li>A prover generates a real STARK proof and gives it to the attester.</li>
+    <li>The attester verifies it <strong>off-chain</strong>, using the real cryptographic verifier (<code>zkvm-stark</code>'s <code>verify_program</code>) — the same code path the CLI and HTTP server use.</li>
+    <li>If it checks out, the attester signs an attestation of the result.</li>
+    <li>The on-chain contract checks the signature, not the proof.</li>
+  </ol>
+
+  <p>So the actual security property is: <strong>the chain trusts one key to have told the truth about a real STARK verification that happened elsewhere.</strong> That's a meaningfully weaker guarantee than a real on-chain verifier, which would need no external trust at all — and it's exactly why the docs call this a "trust bridge," not "on-chain STARK verification."</p>
+
+  <h2>What this is not pretending to be</h2>
+  <p>This distinction only matters if it's checkable, so the test suite exercises the actual failure modes of a trust-bridge design specifically, not just the happy path:</p>
+  <ul>
+    <li><code>test_onlyAttesterCanAttest</code> — a non-attester's signature is rejected</li>
+    <li><code>test_rejectsProofBytesThatDontMatchTheAttestation</code> — the proof bytes have to match what was actually attested to, not just any bytes</li>
+    <li><code>test_cannotDoubleFulfill</code>, <code>test_paysOutOnlyAfterAttestation</code> — the payment side of the orchestrator only releases funds once, and only after a real attestation exists</li>
+  </ul>
+
+  <h2>What a real verifier would require</h2>
+  <p>Making this trustless means porting FRI, Merkle proof verification, and the underlying field arithmetic into Solidity — or wrapping the STARK in a SNARK with an existing efficient EVM verifier, or targeting a chain/precompile that can check this proof system natively. Any of those is a genuine, large cryptographic engineering project on its own, not a follow-up PR. <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a> lays out the specific paths and what each would need.</p>
+
+  <p class="callout"><strong>The actual claim this project makes today:</strong> off-chain STARK verification, on-chain attestation, with the attester's single key as the one named, documented, testable trust assumption. Not "on-chain STARK verification" — that phrase doesn't appear anywhere in this repo's own docs for a reason.</p>
+
+  <div class="post-footer">
+    Full trust model: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>. What a real verifier needs: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

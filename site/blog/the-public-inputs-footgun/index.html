@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Code Review Caught a Real API Footgun. Here's the Fix.</title>
+<meta name="description" content="public_inputs_for(program, trace) took a program and silently ignored it. The mismatch was never exploitable in this repo's own code, but the signature didn't guarantee that. Here's the verification and the fix.">
+<link rel="canonical" href="https://www.zkvm.host/blog/the-public-inputs-footgun/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "A Code Review Caught a Real API Footgun. Here's the Fix.",
+  "description": "public_inputs_for(program, trace) took a program and silently ignored it -- the verification and the fix.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/the-public-inputs-footgun/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">API design · case study</span>
+  <h1>A Code Review Caught a Real API Footgun. Here's the Fix.</h1>
+  <p class="dek">A function took a program and a trace, and quietly ignored the program. Nothing in this repo ever misused it — but nothing in the type system stopped a future caller from doing so, either.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+
+  <p>An external review of this repo flagged a specific function signature as a footgun:</p>
+
+  <pre><code>pub fn public_inputs_for(program: &Program, trace: &ExecutionTrace) -> PublicInputs {
+    let _ = program; // kept for API symmetry with call sites
+    PublicInputs {
+        initial: trace.rows.first().map(|r| r.acc).unwrap_or(BaseElement::ZERO),
+        result: trace.result,
+        program: trace.rows.iter().map(ProgramRow::from).collect(),
+    }
+}</code></pre>
+
+  <p>The claim: this takes a <code>program</code> argument and does nothing with it — every field of the returned <code>PublicInputs</code> comes from <code>trace</code> alone. A caller could pass a <code>program</code> and an unrelated <code>trace</code>, and the function would happily build public inputs that don't actually correspond to that program.</p>
+
+  <h2>Verifying it before touching anything</h2>
+  <p>Before changing a soundness-adjacent function on the strength of a pasted claim, we checked it directly: read the source, confirmed the <code>let _ = program;</code> line, then searched every call site in the workspace. All four looked the same:</p>
+
+  <pre><code>let padded = program.padded();
+let trace = execute(&padded);
+let pub_inputs = public_inputs_for(&padded, &trace);</code></pre>
+
+  <p>In every real call site, <code>trace</code> is derived by executing the exact same <code>program</code> passed alongside it, immediately beforehand. So the claim's second half checked out too: this was never a live bug in this codebase — every caller happened to maintain the invariant the function itself didn't enforce.</p>
+
+  <h2>The fix</h2>
+  <p>Rather than adding a comment warning callers not to misuse it, the signature changed to make the misuse impossible to express:</p>
+
+  <pre><code>pub fn public_inputs_for_program(program: &Program) -> PublicInputs {
+    let trace = zkvm_isa::execute(program);
+    PublicInputs {
+        initial: trace.rows.first().map(|r| r.acc).unwrap_or(BaseElement::ZERO),
+        result: trace.result,
+        program: trace.rows.iter().map(ProgramRow::from).collect(),
+    }
+}</code></pre>
+
+  <p>No trace parameter means no mismatched-trace argument is possible. All four call sites simplified too — each one dropped its own <code>execute()</code> call and <code>trace</code> variable, since the new function does that internally.</p>
+
+  <h2>Verifying the fix, not just the diff</h2>
+  <p>A signature change to a function on the verification path needs more than "it compiles." Before considering this done:</p>
+  <ul>
+    <li>Full workspace test suite (33 tests at the time) — passed under <code>--release</code></li>
+    <li>A real <code>zkvm prove</code> → <code>zkvm verify</code> round trip against an actual example program, not just unit tests — passed</li>
+    <li><code>cargo clippy --release --workspace --all-targets -- -D warnings</code> — clean</li>
+    <li>Pushed and watched through the real GitHub Actions CI run rather than trusting the local pass — every example program still proved and verified against a live server</li>
+  </ul>
+
+  <p class="callout"><strong>The pattern worth taking from this:</strong> a footgun that's never been fired isn't nothing — it's a bug waiting for the next caller who doesn't already know the unwritten rule. Fixing the type instead of the documentation is usually the smaller, more permanent change.</p>
+
+  <div class="post-footer">
+    Full diff context: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/CHANGELOG.md">CHANGELOG.md</a>, "Unreleased" section.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

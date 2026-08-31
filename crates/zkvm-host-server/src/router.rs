@@ -16,7 +16,10 @@ pub struct ProverRouter {
 
 impl ProverRouter {
     pub fn new(default_backend: impl Into<String>) -> Self {
-        Self { backends: HashMap::new(), default_backend: default_backend.into() }
+        Self {
+            backends: HashMap::new(),
+            default_backend: default_backend.into(),
+        }
     }
 
     pub fn register(&mut self, backend: Arc<dyn ProverBackend>) {
@@ -34,6 +37,8 @@ impl ProverRouter {
     }
 
     pub fn get(&self, name: Option<&str>) -> Option<Arc<dyn ProverBackend>> {
-        self.backends.get(name.unwrap_or(&self.default_backend)).cloned()
+        self.backends
+            .get(name.unwrap_or(&self.default_backend))
+            .cloned()
     }
 }

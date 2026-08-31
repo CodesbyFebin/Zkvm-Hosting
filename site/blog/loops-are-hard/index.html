@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Forward-Only Jumps, and What Loops Would Actually Require</title>
+<meta name="description" content="This zkVM's JZ/JNZ can't jump backward. Here's the actual reason -- a fixed-length trace -- and what changing it to support real loops would need.">
+<link rel="canonical" href="https://www.zkvm.host/blog/loops-are-hard/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Why Forward-Only Jumps, and What Loops Would Actually Require",
+  "description": "The actual reason this zkVM's JZ/JNZ can't jump backward, and what real loops would require.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/loops-are-hard/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Scoping</span>
+  <h1>Why Forward-Only Jumps, and What Loops Would Actually Require</h1>
+  <p class="dek">"No loops" is the single biggest capability gap listed in this project's roadmap. Here's the actual, specific reason it's there, and why it's a bigger change than it sounds.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a></p>
+
+  <p><code>JZ</code> and <code>JNZ</code> are real conditional jumps — the parser resolves label targets, the interpreter tracks a runtime program counter separate from the static row index, and the AIR asserts which row actually ran via the <code>active</code> flag (see <a href="/blog/no-secret-witness/">how that assertion is made sound</a>). What they can't do is jump backward. That's not an oversight; it's load-bearing for everything else about how this VM's trace works.</p>
+
+  <h2>One row per instruction, always</h2>
+  <p>The execution trace has exactly one row per <em>static</em> instruction in the program — never revisited. A program with 10 instructions produces a 10-row trace (padded to a power of two for the STARK), regardless of which branches were actually taken. That's what makes the trace length fixed and known at parse time, before any execution happens.</p>
+
+  <p>A backward jump breaks that immediately: if instruction 3 can jump back to instruction 1, a single static instruction can execute an unbounded number of times depending on runtime data. The trace can no longer have "one row per instruction" — it needs "one row per <em>execution step</em>," and the number of steps isn't knowable until the program actually runs.</p>
+
+  <h2>What actually has to change</h2>
+  <p>Real loops need a trace whose length depends on the specific execution, not just the program text:</p>
+  <ul>
+    <li><strong>A maximum cycle count.</strong> STARKs need a trace length fixed at proving time (padded to a power of two), so there has to be some upper bound on how many steps a program can take — a real design parameter, not a detail.</li>
+    <li><strong>Padding for executions shorter than the max.</strong> Most programs won't use every available cycle; the unused rows need a well-defined "halted" state that doesn't corrupt the constraints checking the rows that did real work.</li>
+    <li><strong>Proof-size variability.</strong> Today, every program of the same instruction count produces a same-shape proof. Once trace length depends on runtime behavior (how many loop iterations actually ran), proof size becomes a function of execution, not just program text — a real, user-visible change.</li>
+  </ul>
+
+  <h2>The part that doesn't change</h2>
+  <p>Here's the thing worth being specific about: the "verifier re-executes and asserts everything" trick from <a href="/blog/no-secret-witness/">the soundness post</a> still works with loops. The verifier can run the interpreter itself regardless of how many iterations a loop takes — re-execution doesn't care about trace-length mechanics. What's genuinely new work is the trace-length selection and padding scheme, not the soundness argument underneath it.</p>
+
+  <p>That's specifically why this is <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">first on the suggested-next-slice list</a>, ahead of memory or RISC-V compatibility: it's a real, scoped, self-contained problem, distinct from whether the underlying soundness technique holds — which it does.</p>
+
+  <div class="post-footer">
+    Current state and the full next-steps list: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

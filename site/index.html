@@ -1,499 +1,991 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>zkVM — a zkVM that names its own gaps</title>
-<meta name="description" content="A real STARK-verifiable virtual machine (Rust + Winterfell): conditional branching, a register file, an MCP server, on-chain attestation, and a CI proof gate. No private-witness support yet — every unfinished piece is named in the docs, not hidden." />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>zkvm.host — Deploy verifiable compute in one line</title>
+<meta name="description" content="Push code, get a cryptographic proof it ran correctly. zkvm.host is the deploy layer for verifiable compute across zkVM backends.">
+<link rel="canonical" href="https://www.zkvm.host/">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="zkvm.host">
+<meta property="og:title" content="zkvm.host — Deploy verifiable compute in one line">
+<meta property="og:description" content="Push code, get a cryptographic proof it ran correctly. No circuits, no prover clusters, no infrastructure.">
+<meta property="og:url" content="https://www.zkvm.host/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="zkvm.host — Deploy verifiable compute in one line">
+<meta name="twitter:description" content="Push code, get a cryptographic proof it ran correctly.">
+
+<!--
+  Structured data below describes the real, open-source project this site is
+  built on top of (name, license, source repository) -- not the multi-backend
+  routing/pricing content in the page below, which is product-vision copy, not
+  a claim about what ships today. Search engines and AI answer systems treat
+  JSON-LD as verifiable fact, so it's scoped to what's actually checkable at
+  the linked repository.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "zkvm-rust-stark-verifiable-compute",
+  "alternateName": "zkvm.host",
+  "description": "A real STARK-provable zero-knowledge virtual machine written in Rust, built on Winterfell: a custom instruction set with conditional branching and a register file, a from-scratch AIR, an HTTP + MCP proving service, and Foundry contracts with a documented on-chain trust model.",
+  "codeRepository": "https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute",
+  "programmingLanguage": ["Rust", "Solidity"],
+  "license": "https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/LICENSE",
+  "url": "https://www.zkvm.host/",
+  "sameAs": ["https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute"]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --bg: #f6f7f5;
-    --surface: #ffffff;
-    --ink: #14231c;
-    --ink-soft: #4b5d54;
-    --ink-faint: #7c8b82;
+    --bg: #f5f2ea;
+    --bg-raised: #eee9dc;
+    --bg-sunken: #e6e0cf;
+    --text: #201c14;
+    --text-muted: #6b6355;
+    --border: #d9d2bf;
+    --border-strong: #c7bea6;
     --accent: #1f6b4f;
-    --accent-dark: #123c2c;
-    --accent-soft: #e7f0ea;
-    --border: #d6ded8;
-    --code-bg: #101915;
-    --code-ink: #d9e6de;
-    --code-accent: #6fcf9e;
-    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --sans: 'Work Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --accent-strong: #15503a;
+    --accent-soft: #e3ede6;
+    --pending: #8a6a1a;
+    --danger: #a03f2b;
+    --shadow: 0 1px 2px rgba(32,28,20,0.04), 0 8px 24px rgba(32,28,20,0.05);
+
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140e;
+      --bg-raised: #201a12;
+      --bg-sunken: #0e0c08;
+      --text: #ece6d7;
+      --text-muted: #a89b82;
+      --border: #362f1f;
+      --border-strong: #4a4028;
+      --accent: #45b389;
+      --accent-strong: #63cda3;
+      --accent-soft: #1b2b23;
+      --pending: #d1a53d;
+      --danger: #dd8266;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #17140e;
+    --bg-raised: #201a12;
+    --bg-sunken: #0e0c08;
+    --text: #ece6d7;
+    --text-muted: #a89b82;
+    --border: #362f1f;
+    --border-strong: #4a4028;
+    --accent: #45b389;
+    --accent-strong: #63cda3;
+    --accent-soft: #1b2b23;
+    --pending: #d1a53d;
+    --danger: #dd8266;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.35);
   }
 
   * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
     background: var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    line-height: 1.55;
+    color: var(--text);
+    font-family: var(--font-body);
     font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
+  img, svg { max-width: 100%; display: block; }
+  a { color: inherit; }
+  ::selection { background: var(--accent-soft); color: var(--accent-strong); }
 
-  a { color: var(--accent-dark); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  .wrap--narrow { max-width: 760px; }
 
-  .wrap {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-
-  header.site {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.3rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .brand {
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 1.05rem;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    text-decoration: none;
-  }
-
-  .brand span { color: var(--accent); }
-
-  nav.site a {
-    font-family: var(--mono);
-    font-size: 0.82rem;
-    color: var(--ink-soft);
-    text-decoration: none;
-    margin-left: 1.4rem;
-  }
-
-  nav.site a:hover { color: var(--accent-dark); }
-
-  .hero {
-    padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 6vw, 4rem);
-  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
 
   .eyebrow {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     letter-spacing: 0.09em;
-    color: var(--accent-dark);
-    background: var(--accent-soft);
-    display: inline-block;
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    margin-bottom: 1.4rem;
+    text-transform: uppercase;
+    color: var(--accent);
   }
+  .eyebrow::before { content: '§'; opacity: 0.6; }
 
-  h1 {
-    font-family: var(--mono);
-    font-weight: 800;
-    font-size: clamp(2rem, 5.2vw, 3.4rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    margin: 0 0 1.3rem;
-    max-width: 18ch;
-    text-wrap: balance;
-  }
+  .section { padding: 96px 0; border-bottom: 1px solid var(--border); }
+  .section-head { max-width: 620px; margin-bottom: 48px; }
+  .section-head h2 { font-size: clamp(1.9rem, 3.6vw, 2.6rem); margin-top: 14px; line-height: 1.15; }
+  .section-head p { color: var(--text-muted); font-size: 1.02rem; margin-top: 14px; max-width: 60ch; }
+  .section-head--center { margin-left: auto; margin-right: auto; text-align: center; }
 
-  .hero p.lede {
-    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
-    color: var(--ink-soft);
-    max-width: 58ch;
-    margin: 0 0 2rem;
-  }
+  .em { font-style: italic; color: var(--accent); }
 
-  .cta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-bottom: 2.2rem;
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
   }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-weight: 600; font-size: 15px; text-decoration: none; }
+  .brand-mark { width: 26px; height: 26px; }
+  .brand .dot { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a { font-size: 13.5px; color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; transition: color .2s, border-color .2s; }
+  .nav-links a:hover { color: var(--text); border-color: var(--border-strong); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
 
   .btn {
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-decoration: none;
-    padding: 0.7rem 1.3rem;
-    border-radius: 6px;
-    display: inline-block;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+    padding: 11px 20px; border-radius: 3px; border: 1px solid transparent;
+    cursor: pointer; text-decoration: none; transition: transform .15s ease, background .2s, border-color .2s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+  .btn-ghost:hover { background: var(--bg-raised); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 76px 0 90px; border-bottom: 1px solid var(--border); }
+  .hero-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } }
+
+  .hero h1 { font-size: clamp(2.6rem, 5.4vw, 4rem); line-height: 1.06; letter-spacing: -0.01em; margin: 18px 0 22px; }
+  .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 46ch; margin-bottom: 32px; }
+  .hero-sub strong { color: var(--text); font-weight: 600; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+
+  .backends { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted); }
+  .backends .label { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+  .backend-tag {
+    font-family: var(--font-mono); font-size: 11.5px; padding: 4px 9px;
+    border: 1px solid var(--border-strong); border-radius: 2px; color: var(--text-muted);
+    background: var(--bg-raised);
   }
 
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-dark); }
+  .seal-wrap { display: flex; justify-content: center; align-items: center; }
+  .seal {
+    width: min(280px, 80vw); height: min(280px, 80vw);
+    animation: seal-stamp 0.9s cubic-bezier(.2,1.6,.4,1) both;
+    animation-delay: 0.15s;
+  }
+  @media (prefers-reduced-motion: reduce) { .seal { animation: none; } }
+  @keyframes seal-stamp {
+    0% { opacity: 0; transform: scale(1.5) rotate(-10deg); }
+    60% { opacity: 1; }
+    100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+  }
+  .seal circle, .seal path, .seal text { fill: none; }
+  .seal .ring { stroke: var(--accent); stroke-width: 1.4; }
+  .seal .ring-inner { stroke: var(--border-strong); stroke-width: 1; }
+  .seal text { fill: var(--accent); font-family: var(--font-mono); font-size: 10.4px; letter-spacing: 0.14em; }
+  .seal .check { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .seal .check-bg { fill: var(--bg); }
 
-  .btn-ghost {
-    background: transparent;
-    color: var(--ink);
+  /* ---------- Terminal / receipt ---------- */
+  .terminal {
+    background: var(--bg-sunken);
     border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
   }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
-
-  .badge-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    align-items: center;
+  .terminal-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
   }
-
-  .badge-row img { height: 20px; display: block; }
-
-  section {
-    padding: clamp(2.5rem, 6vw, 4rem) 0;
-    border-top: 1px solid var(--border);
+  .terminal-bar .stub { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--border-strong); }
+  .terminal-body {
+    padding: 20px 22px; min-height: 200px;
+    font-family: var(--font-mono); font-size: 12.6px; line-height: 1.9;
+    max-height: 340px; overflow-y: auto;
   }
+  .terminal-body .ln { white-space: pre-wrap; }
+  .ln--cmd { color: var(--text); }
+  .ln--dim { color: var(--text-muted); }
+  .ln--ok { color: var(--accent); }
+  .ln--warn { color: var(--pending); }
+  .ln--brand { color: var(--accent); font-weight: 600; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--accent); vertical-align: -2px; animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
 
-  h2 {
-    font-family: var(--mono);
-    font-size: clamp(1.4rem, 3vw, 1.8rem);
-    letter-spacing: -0.01em;
-    margin: 0 0 0.6rem;
-  }
-
-  .section-lede {
-    color: var(--ink-soft);
-    max-width: 62ch;
-    margin: 0 0 2rem;
-  }
-
-  .grid-3 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.2rem;
-  }
+  /* ---------- Cards / grids ---------- */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  @media (max-width: 880px) { .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
 
   .card {
-    background: var(--surface);
+    background: var(--bg-raised);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.4rem;
+    border-radius: 6px;
+    padding: 26px;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+
+  .docket-card { position: relative; padding-top: 30px; }
+  .docket-num {
+    position: absolute; top: 14px; right: 16px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .docket-card h3 { font-size: 1.06rem; font-family: var(--font-body); font-weight: 700; margin-bottom: 8px; }
+  .docket-card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; margin-bottom: 12px; }
+  .docket-card code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px;
+    background: var(--accent-soft); color: var(--accent); border-radius: 2px;
   }
 
-  .card h3 {
-    font-family: var(--mono);
-    font-size: 1.02rem;
-    margin: 0 0 0.6rem;
-    color: var(--accent-dark);
-  }
+  .pain-item { display: flex; gap: 18px; padding: 22px 0; border-top: 1px solid var(--border); }
+  .pain-item:first-child { border-top: none; }
+  .pain-num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--border-strong); min-width: 44px; }
+  .pain-item h3 { font-size: 1rem; font-family: var(--font-body); font-weight: 700; margin-bottom: 6px; }
+  .pain-item p { font-size: 13.5px; color: var(--text-muted); }
 
-  .card p {
-    margin: 0;
-    color: var(--ink-soft);
-    font-size: 0.92rem;
-  }
-
-  .diagram {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem;
-    overflow-x: auto;
-  }
-
-  .diagram img { width: 100%; height: auto; display: block; min-width: 600px; }
-
-  blockquote.doc-quote {
-    font-family: var(--mono);
-    font-size: 0.95rem;
-    background: var(--code-bg);
-    color: var(--code-ink);
-    border-left: 3px solid var(--code-accent);
-    border-radius: 0 8px 8px 0;
-    padding: 1rem 1.3rem;
-    margin: 0 0 1rem;
-  }
-
-  blockquote.doc-quote cite {
-    display: block;
-    margin-top: 0.6rem;
-    font-style: normal;
-    color: var(--ink-faint);
-    font-size: 0.78rem;
-  }
-
-  blockquote.doc-quote cite a { color: var(--code-accent); }
-
-  pre {
-    background: var(--code-bg);
-    color: var(--code-ink);
-    font-family: var(--mono);
-    font-size: 0.85rem;
-    border-radius: 8px;
-    padding: 1.1rem 1.3rem;
-    overflow-x: auto;
-    line-height: 1.6;
-    margin: 0 0 1.2rem;
-  }
-
-  pre .comment { color: var(--ink-faint); }
-  pre .prompt { color: var(--code-accent); }
-
-  .docs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.9rem;
-  }
-
-  .docs-grid a {
-    display: block;
-    text-decoration: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1rem 1.1rem;
-  }
-
-  .docs-grid a:hover { border-color: var(--accent); }
-
-  .docs-grid .doc-name {
-    font-family: var(--mono);
-    font-weight: 500;
-    color: var(--ink);
-    font-size: 0.9rem;
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-
-  .docs-grid .doc-desc {
-    color: var(--ink-soft);
-    font-size: 0.82rem;
-  }
-
-  .funding-band {
+  .callout {
+    border-left: 3px solid var(--accent);
     background: var(--accent-soft);
-    border-radius: 12px;
-    padding: 2rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    align-items: center;
-    justify-content: space-between;
+    padding: 18px 22px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.7;
   }
+  .callout em { color: var(--accent-strong); font-style: normal; font-weight: 600; }
 
-  .funding-band h2 { color: var(--accent-dark); }
-
-  .funding-band p { color: var(--accent-dark); margin: 0 0 1.2rem; max-width: 46ch; }
-
-  .funding-band .chains {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--accent-dark);
-    opacity: 0.75;
-    margin-top: 0.8rem;
+  /* ---------- Demo ---------- */
+  .demo-shell { max-width: 700px; margin: 0 auto; }
+  .source-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .source-tab {
+    font-family: var(--font-mono); font-size: 12px; padding: 7px 13px;
+    border: 1px solid var(--border-strong); border-radius: 3px; background: var(--bg-raised);
+    color: var(--text-muted); cursor: pointer; transition: all .2s;
   }
-
-  footer.site {
-    padding: 2.5rem 0 3rem;
-    border-top: 1px solid var(--border);
-    color: var(--ink-faint);
-    font-size: 0.85rem;
+  .source-tab.active { background: var(--accent-soft); color: var(--accent-strong); border-color: var(--accent); }
+  .deploy-btn {
+    margin-left: auto; font-family: var(--font-mono); font-size: 11.5px;
+    padding: 7px 14px; background: var(--accent); color: var(--bg);
+    border: none; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   }
+  .deploy-btn:disabled { opacity: 0.6; cursor: progress; }
 
-  footer.site a { color: var(--ink-soft); }
-
-  footer.site .foot-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    font-family: var(--mono);
-    font-size: 0.8rem;
+  .receipt {
+    margin-top: 16px; display: none;
+    background: var(--bg-raised); border: 1px dashed var(--border-strong);
+    border-radius: 6px; padding: 20px;
   }
+  .receipt.show { display: block; }
+  .receipt-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .receipt-head .label { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .receipt-stamp {
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+    color: var(--accent); border: 1.5px solid var(--accent); border-radius: 3px;
+    padding: 2px 8px; transform: rotate(-3deg);
+  }
+  .receipt-endpoint { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-sunken); border-radius: 4px; margin-bottom: 14px; }
+  .receipt-endpoint code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); flex: 1; overflow-x: auto; white-space: nowrap; }
+  .receipt-endpoint button { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .receipt-endpoint button:hover { color: var(--accent); }
+  .receipt-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .receipt-meta div { text-align: center; padding: 10px; background: var(--bg-sunken); border-radius: 4px; }
+  .receipt-meta .k { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .receipt-meta .v { font-family: var(--font-mono); font-size: 14px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .demo-note { font-size: 12px; color: var(--text-muted); margin-top: 14px; text-align: center; }
 
-  @media (max-width: 600px) {
-    nav.site { display: none; }
+  /* ---------- Timeline ---------- */
+  .timeline { max-width: 680px; margin: 0 auto; }
+  .tl-step { display: grid; grid-template-columns: 44px 1fr; gap: 20px; position: relative; }
+  .tl-step:not(:last-child) { padding-bottom: 34px; }
+  .tl-step:not(:last-child)::before {
+    content: ''; position: absolute; left: 21px; top: 44px; bottom: 0; width: 1px; background: var(--border);
+  }
+  .tl-num {
+    width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 13px; color: var(--accent); background: var(--bg);
+    z-index: 1;
+  }
+  .tl-body h3 { font-size: 1.02rem; font-family: var(--font-body); font-weight: 700; margin-bottom: 6px; }
+  .tl-body p { font-size: 13.5px; color: var(--text-muted); margin-bottom: 10px; }
+
+  /* ---------- Pricing ---------- */
+  .price-card { display: flex; flex-direction: column; position: relative; }
+  .price-card.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .price-recommend {
+    position: absolute; top: -11px; left: 24px;
+    font-family: var(--font-mono); font-size: 10px; background: var(--accent); color: var(--bg);
+    padding: 3px 9px; border-radius: 2px; letter-spacing: 0.04em;
+  }
+  .price-tier { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 10px; }
+  .price-amount { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; margin-bottom: 2px; }
+  .price-amount span { font-family: var(--font-body); font-size: 0.85rem; font-weight: 400; color: var(--text-muted); }
+  .price-desc { font-size: 12.5px; color: var(--text-muted); margin-bottom: 18px; }
+  .price-list { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 9px; font-size: 12.8px; }
+  .price-list li { display: flex; gap: 8px; align-items: baseline; }
+  .price-list .yes { color: var(--accent); }
+  .price-list .no { color: var(--border-strong); }
+  .price-card .btn { margin-top: auto; justify-content: center; width: 100%; }
+
+  /* ---------- Moat table ---------- */
+  .moat-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table.moat { width: 100%; border-collapse: collapse; min-width: 560px; }
+  table.moat th { text-align: left; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); padding: 14px 20px; background: var(--bg-raised); }
+  table.moat td { padding: 18px 20px; border-top: 1px solid var(--border); font-size: 13.5px; vertical-align: top; }
+  table.moat td.who { font-weight: 700; font-size: 14px; width: 220px; }
+  table.moat td.who span { display: block; font-weight: 400; font-size: 11.5px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+  table.moat td.edge { color: var(--text-muted); }
+  table.moat td.edge strong { color: var(--text); }
+
+  /* ---------- Vision ---------- */
+  .vision-card { border-left: 2px solid var(--accent); padding-left: 18px; }
+  .vision-card .icon { font-size: 1.3rem; margin-bottom: 8px; }
+  .vision-card h3 { font-size: 1rem; font-family: var(--font-body); font-weight: 700; margin-bottom: 6px; }
+  .vision-card p { font-size: 13.5px; color: var(--text-muted); }
+
+  /* ---------- Quote / CTA ---------- */
+  .quote-section { text-align: center; }
+  blockquote {
+    font-family: var(--font-display); font-style: italic; font-weight: 500;
+    font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.4; margin: 0 0 28px;
+    color: var(--text);
+  }
+  .cta-box { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 8px; padding: 40px; margin: 0 auto; max-width: 560px; }
+  .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+
+  footer { padding: 40px 0; }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-links { display: flex; gap: 22px; font-size: 12.5px; color: var(--text-muted); }
+  .footer-links a { text-decoration: none; }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-brand { font-size: 12.5px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { transition: none; opacity: 1; transform: none; }
   }
 </style>
 </head>
 <body>
 
-<header class="site">
-  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-    <a class="brand" href="#top">zk<span>vm</span></a>
-    <nav class="site">
-      <a href="#real">What's real</a>
-      <a href="#try">Try it</a>
-      <a href="#docs">Docs</a>
-      <a href="#funding">Funding</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
-    </nav>
+<nav>
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <svg class="brand-mark" viewBox="0 0 26 26" aria-hidden="true">
+        <circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <path d="M8 13.5l3.4 3.4L18.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      zkvm<span class="dot">.</span>host
+    </a>
+    <div class="nav-links">
+      <a href="#product">Product</a>
+      <a href="#demo">Demo</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#moat">Why Us</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="/blog/">Blog</a>
+    </div>
+    <a class="btn btn-primary" href="#demo">Try Deploy →</a>
   </div>
-</header>
+</nav>
 
-<div class="wrap">
-  <section class="hero" id="top">
-    <span class="eyebrow">Rust · Winterfell · STARK</span>
-    <h1>A zkVM that names its own gaps.</h1>
-    <p class="lede">
-      Real conditional branching. A real register file. A STARK proof that binds to
-      one exact program and its actual execution — not just "some valid trace." And
-      a <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">roadmap</a>
-      that spends as many words on what's <em>not</em> built yet as on what is.
-    </p>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">View on GitHub</a>
-      <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">Read the roadmap</a>
-    </div>
-    <div class="badge-row">
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml"><img src="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/actions/workflows/zk-ci.yml/badge.svg" alt="CI status"></a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/releases/tag/v0.1.0"><img src="https://img.shields.io/badge/release-v0.1.0-1f6b4f.svg" alt="v0.1.0"></a>
-      <a href="https://github.com/sponsors/CodesbyFebin"><img src="https://img.shields.io/github/sponsors/CodesbyFebin" alt="GitHub Sponsors"></a>
-    </div>
-  </section>
-
-  <section id="real">
-    <h2>What's actually real</h2>
-    <p class="section-lede">
-      Every claim below has a test in the repo that checks it — including negative
-      tests that confirm tampering gets rejected, not just that the happy path works.
-    </p>
-    <div class="grid-3">
-      <div class="card">
-        <h3>Interpreter + AIR</h3>
-        <p>An accumulator machine with real conditional control flow (<code>JZ</code>/<code>JNZ</code>)
-        and a 4-register file (<code>LOAD</code>/<code>STORE</code>). The AIR binds a proof to one
-        specific program <em>and</em> which branch it took, which register it touched —
-        not just "a valid trace exists."</p>
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">The Heroku of zkVMs</span>
+      <h1>Deploy verifiable<br>compute in <span class="em">one line</span>.</h1>
+      <p class="hero-sub">Push code, get a cryptographic proof it ran correctly. <strong>No circuits, no prover clusters, no infrastructure.</strong> Just push.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#demo">See it deploy</a>
+        <a class="btn btn-ghost" href="#product">How it works</a>
       </div>
-      <div class="card">
-        <h3>STARK prover/verifier</h3>
-        <p>Built on <a href="https://github.com/facebook/winterfell">Winterfell</a>. Sound without a
-        lookup/permutation argument, because this system has no secret witness — the
-        verifier already re-executes the program, so most trace columns are asserted
-        directly instead of derived algebraically.</p>
-      </div>
-      <div class="card">
-        <h3>HTTP + MCP service</h3>
-        <p>Push a <code>.zkasm</code> program, get a proof back — over HTTP, or straight
-        from Claude Desktop / Cursor via a real MCP <code>prove</code>/<code>verify</code>
-        tool pair, verified against an actual client handshake.</p>
+      <div class="backends">
+        <span class="label">Compiles from</span>
+        <span class="backend-tag">SP1</span>
+        <span class="backend-tag">RISC Zero</span>
+        <span class="backend-tag">Jolt</span>
+        <span class="backend-tag">ZKWASM</span>
+        <span class="backend-tag">Pico</span>
       </div>
     </div>
-  </section>
-
-  <section id="architecture">
-    <h2>How it fits together</h2>
-    <p class="section-lede">
-      One path from source to proof to on-chain settlement — no step skipped, no box
-      standing in for something unbuilt.
-    </p>
-    <div class="diagram">
-      <img src="/assets/architecture.svg" alt="program.zkasm flows through zkvm-isa and zkvm-stark, then out through the CLI, HTTP server, and MCP tools, to the on-chain demo and contracts" />
+    <div class="seal-wrap">
+      <svg class="seal" viewBox="0 0 200 200" role="img" aria-label="Verified compute seal">
+        <defs>
+          <path id="sealCirclePath" d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0" />
+        </defs>
+        <circle class="ring" cx="100" cy="100" r="92"/>
+        <circle class="ring-inner" cx="100" cy="100" r="66"/>
+        <text>
+          <textPath href="#sealCirclePath" startOffset="2%">ZKVM.HOST · VERIFIED EXECUTION · ZKVM.HOST · VERIFIED EXECUTION ·</textPath>
+        </text>
+        <circle class="check-bg" cx="100" cy="100" r="60"/>
+        <path class="check" d="M74 101 L92 119 L128 79"/>
+      </svg>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="discipline">
-    <h2>The discipline, in its own words</h2>
-    <p class="section-lede">
-      Pulled directly from this repo's own docs — not paraphrased, not softened.
-    </p>
-    <blockquote class="doc-quote">
-      "What's explicitly NOT here yet" — loops, addressable memory, RISC-V
-      compatibility, formal verification, fuzzing, external audits, recursion,
-      a second proving backend. Named individually, with why each is genuinely hard.
-      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a></cite>
-    </blockquote>
-    <blockquote class="doc-quote">
-      "<code>AttestedVerifier</code> is a trusted bridge (an off-chain party attests a
-      proof checked out), not a cryptographic verifier." Stated as the headline fact,
-      not a footnote.
-      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a></cite>
-    </blockquote>
-    <blockquote class="doc-quote">
-      SP1 integration: "a real crate, a real API" — investigated, then declined, with
-      the actual reasons (518 dependencies for a hello-world, a Go FFI dependency, a
-      4-minute failing <code>cargo check</code>) written down instead of quietly dropped.
-      <cite><a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></cite>
-    </blockquote>
-  </section>
-
-  <section id="try">
-    <h2>Try it</h2>
-    <p class="section-lede">Three ways in — pick whichever fits.</p>
-    <pre><span class="comment"># run the full execute -> prove -> verify -> tamper-check demo</span>
-<span class="prompt">$</span> cargo run --release -p zkvm-cli -- demo
-
-<span class="comment"># or "push code, get a proof" over HTTP</span>
-<span class="prompt">$</span> cargo run --release -p zkvm-host-server &
-<span class="prompt">$</span> cargo run --release -p zkvm-cli -- deploy examples/fibonacci_like.zkasm
-
-<span class="comment"># or from Claude Desktop / Cursor over MCP</span>
-<span class="prompt">$</span> cargo build --release -p zkvm-host-server && ./scripts/mcp_demo.sh</pre>
-    <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute#quick-start">Full quick-start in the README →</a>
-  </section>
-
-  <section id="docs">
-    <h2>Read the docs directly</h2>
-    <p class="section-lede">No separate marketing version of the truth — these are the same docs the code review checklist points to.</p>
-    <div class="docs-grid">
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">
-        <span class="doc-name">ROADMAP.md</span>
-        <span class="doc-desc">What's real, what's aspirational, what's next.</span>
-      </a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">
-        <span class="doc-name">THREAT_MODEL.md</span>
-        <span class="doc-desc">What's trustless today vs. what isn't.</span>
-      </a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ONCHAIN_VERIFIER.md">
-        <span class="doc-name">ONCHAIN_VERIFIER.md</span>
-        <span class="doc-desc">What a real cryptographic verifier would take.</span>
-      </a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">
-        <span class="doc-name">HOST_SERVICE.md</span>
-        <span class="doc-desc">The SP1 investigation, and why it stopped.</span>
-      </a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/RECURSION.md">
-        <span class="doc-name">RECURSION.md</span>
-        <span class="doc-desc">A scoped literature review, not an implementation.</span>
-      </a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/MCP.md">
-        <span class="doc-name">MCP.md</span>
-        <span class="doc-desc">Connect Claude Desktop or Cursor to the prover.</span>
-      </a>
-    </div>
-  </section>
-
-  <section id="funding">
-    <div class="funding-band">
-      <div>
-        <h2>Fund the next slice</h2>
-        <p>Loops, addressable memory, and recursive proof compression are scoped,
-        not hand-wavy — see the grant pitch for exactly what each would take.</p>
-        <div class="cta-row" style="margin-bottom:0;">
-          <a class="btn btn-primary" href="https://github.com/sponsors/CodesbyFebin">Sponsor on GitHub</a>
-          <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Donate crypto</a>
-        </div>
-        <p class="chains">ETH · USDT · OP · ARB · FIL · BTC · SOL — addresses and QR codes at /funding</p>
-      </div>
-    </div>
-  </section>
-</div>
-
-<footer class="site">
+<section class="section reveal">
   <div class="wrap">
-    <div class="foot-links">
+    <div class="section-head">
+      <span class="eyebrow">The problem — 2026</span>
+      <h2>ZK is powerful. The developer experience is not.</h2>
+      <p>Existing prover marketplaces solve <em>supply</em>. Nobody has solved <em>demand-side</em> developer experience — the part where you actually ship something.</p>
+    </div>
+
+    <div>
+      <div class="pain-item">
+        <div class="pain-num">01</div>
+        <div><h3>Choose a zkVM up front</h3><p>SP1, RISC Zero, Jolt, Pico — each with different trade-offs, APIs, and proof formats. Pick wrong and you're locked in before you've shipped anything.</p></div>
+      </div>
+      <div class="pain-item">
+        <div class="pain-num">02</div>
+        <div><h3>Build a prover pipeline</h3><p>Custom prover infrastructure, or rent from a single marketplace. GPU clusters, recursion layers, proof-size budgets — a full-time job before you write product code.</p></div>
+      </div>
+      <div class="pain-item">
+        <div class="pain-num">03</div>
+        <div><h3>Manage the compute yourself</h3><p>Proving is compute-intensive. You need GPUs, autoscaling, and cost controls — or you pay a premium to a single provider with no leverage.</p></div>
+      </div>
+      <div class="pain-item">
+        <div class="pain-num">04</div>
+        <div><h3>Start over if you switch</h3><p>Need a different proof system or VM? There's no portability and no abstraction layer — you rebuild the pipeline from scratch.</p></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 28px;">
+      Marketplaces like Brevis ProverNet and the Succinct Prover Network solve prover <em>supply</em>. They're "AWS for provers" — powerful, but you still architect the pipeline yourself. <strong>The demand-side layer is missing.</strong>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="product">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">The product</span>
+      <h2>Six layers. One command.</h2>
+      <p>Everything between your source code and a verified proof, handled for you.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="card docket-card">
+        <span class="docket-num">01 / CLI</span>
+        <h3>zkvm.host deploy</h3>
+        <p>Auto-selects the best zkVM for your workload. LLVM → SP1, RISC-V → RISC Zero / Jolt, WASM → ZKWASM.</p>
+        <code>$ zkvm.host deploy ./program.rs</code>
+      </div>
+      <div class="card docket-card">
+        <span class="docket-num">02 / ROUTING</span>
+        <h3>Multi-VM Router</h3>
+        <p>Routes to the optimal prover — GPU, CPU, or edge — based on proof size, latency, and cost. A load balancer for proof systems.</p>
+        <div class="chip-row"><span class="chip">SP1</span><span class="chip">RISC Zero</span><span class="chip">Jolt</span><span class="chip">Pico</span></div>
+      </div>
+      <div class="card docket-card">
+        <span class="docket-num">03 / API</span>
+        <h3>Serverless proofs</h3>
+        <p>Pay-per-proof API. No infrastructure to run. Scale from one proof a second to a hundred thousand. Cold start under 500ms.</p>
+        <code>POST /prove → 200 OK</code>
+      </div>
+      <div class="card docket-card">
+        <span class="docket-num">04 / CI</span>
+        <h3>CI/CD proofs</h3>
+        <p>GitHub and GitLab integration: every pull request that touches verified logic auto-generates a proof and posts it as a check.</p>
+        <div class="chip-row"><span class="chip">✓ Proof verified</span></div>
+      </div>
+      <div class="card docket-card">
+        <span class="docket-num">05 / EDGE</span>
+        <h3>Edge proving SDK</h3>
+        <p>Browser, WASM, and edge-runtime proof generation for privacy-sensitive frontends — KYC, private order books, confidential bidding.</p>
+        <div class="chip-row"><span class="chip">WASM</span><span class="chip">Edge</span><span class="chip">Browser</span></div>
+      </div>
+      <div class="card docket-card">
+        <span class="docket-num">06 / AGENTS</span>
+        <h3>AI agent verification</h3>
+        <p>Prove that an autonomous agent executed a policy correctly — every action auditable by any third party, without exposing its reasoning.</p>
+        <code>agent.verify(policy) → ✓</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="demo">
+  <div class="wrap">
+    <div class="section-head section-head--center">
+      <span class="eyebrow">Live demo</span>
+      <h2>Watch it deploy</h2>
+      <p>Pick a source language and deploy — from compile to a verified proof endpoint.</p>
+    </div>
+
+    <div class="demo-shell">
+      <div class="source-tabs">
+        <button class="source-tab active" data-lang="rust" data-vm="SP1" data-file="program.rs">program.rs</button>
+        <button class="source-tab" data-lang="c" data-vm="RISC Zero" data-file="program.c">program.c</button>
+        <button class="source-tab" data-lang="wasm" data-vm="ZKWASM" data-file="module.wasm">module.wasm</button>
+        <button class="deploy-btn" id="deployBtn">▸ Deploy</button>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="stub"></span><span class="stub"></span><span class="stub"></span>
+          <span id="termFile" style="margin-left:6px;">program.rs</span>
+        </div>
+        <div class="terminal-body" id="termBody">
+          <div class="ln ln--dim">$ <span class="cursor"></span></div>
+        </div>
+      </div>
+
+      <div class="receipt" id="receipt">
+        <div class="receipt-head">
+          <span class="label">Proof receipt</span>
+          <span class="receipt-stamp">VERIFIED ✓</span>
+        </div>
+        <div class="receipt-endpoint">
+          <code id="rEndpoint">https://zkvm.host/p/a3f8c1</code>
+          <button id="rCopy">Copy</button>
+        </div>
+        <div class="receipt-meta">
+          <div><div class="k">VM</div><div class="v" id="rVm">SP1</div></div>
+          <div><div class="k">Time</div><div class="v" id="rTime">1.2s</div></div>
+          <div><div class="k">Cost</div><div class="v" id="rCost">$0.004</div></div>
+        </div>
+      </div>
+      <p class="demo-note">Simulated for illustration — no code is actually compiled or proven here. The real, open-source implementation is at <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" style="color:var(--accent);">github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>From source to verified proof</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-num">1</div>
+        <div class="tl-body">
+          <h3>Push your code</h3>
+          <p>Rust, C, C++, or anything that compiles to RISC-V or WASM. No ZK-specific code required.</p>
+          <code style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);">zkvm.host deploy ./my_app.rs</code>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">2</div>
+        <div class="tl-body">
+          <h3>The router picks a backend</h3>
+          <p>Your workload is scored against SP1, RISC Zero, Jolt, and ZKWASM — the router selects for speed, compatibility, or WASM-native execution.</p>
+          <div class="chip-row"><span class="chip">LLVM → SP1</span><span class="chip">RISC-V → RISC Zero</span><span class="chip">WASM → ZKWASM</span></div>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">3</div>
+        <div class="tl-body">
+          <h3>It's proven on decentralized supply</h3>
+          <p>Your proof is generated on the best available prover — from ProverNet, Succinct, or our own fleet. You never manage the infrastructure.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">4</div>
+        <div class="tl-body">
+          <h3>You get an endpoint</h3>
+          <p>A serverless API that anyone can call to verify your program's output — served via API, or posted on-chain.</p>
+          <code style="font-family: var(--font-mono); font-size: 11.5px; color: var(--pending);">GET /p/{hash}/verify → 200 OK</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="pricing">
+  <div class="wrap">
+    <div class="section-head section-head--center">
+      <span class="eyebrow">Pricing</span>
+      <h2>Start free. Scale infinitely.</h2>
+      <p>Pay per proof. No commitments, no GPU clusters to manage.</p>
+    </div>
+
+    <div class="grid-4">
+      <div class="card price-card">
+        <div class="price-tier">Hobby</div>
+        <div class="price-amount">Free</div>
+        <div class="price-desc">For experimenting</div>
+        <ul class="price-list">
+          <li><span class="yes">✓</span> 100 proofs / mo</li>
+          <li><span class="yes">✓</span> SP1 only</li>
+          <li><span class="yes">✓</span> 30s timeout</li>
+          <li><span class="no">–</span> No CI/CD</li>
+        </ul>
+        <a class="btn btn-ghost" href="mailto:codesbyfebin@gmail.com?subject=zkvm.host%20Hobby%20tier">Get started</a>
+      </div>
+      <div class="card price-card featured">
+        <span class="price-recommend">Recommended</span>
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$49<span>/mo</span></div>
+        <div class="price-desc">For shipping products</div>
+        <ul class="price-list">
+          <li><span class="yes">✓</span> 10,000 proofs / mo</li>
+          <li><span class="yes">✓</span> All zkVMs</li>
+          <li><span class="yes">✓</span> CI/CD integration</li>
+          <li><span class="yes">✓</span> Custom recursion</li>
+        </ul>
+        <a class="btn btn-primary" href="mailto:codesbyfebin@gmail.com?subject=zkvm.host%20Pro%20tier">Start Pro trial</a>
+      </div>
+      <div class="card price-card">
+        <div class="price-tier">Scale</div>
+        <div class="price-amount">Usage</div>
+        <div class="price-desc">$0.002 – $0.02 / proof</div>
+        <ul class="price-list">
+          <li><span class="yes">✓</span> Multi-VM routing</li>
+          <li><span class="yes">✓</span> Edge proving</li>
+          <li><span class="yes">✓</span> 99.9% SLA</li>
+          <li><span class="yes">✓</span> Private prover pool</li>
+        </ul>
+        <a class="btn btn-ghost" href="mailto:codesbyfebin@gmail.com?subject=zkvm.host%20Scale%20tier">Contact sales</a>
+      </div>
+      <div class="card price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">Custom</div>
+        <div class="price-desc">Dedicated infrastructure</div>
+        <ul class="price-list">
+          <li><span class="yes">✓</span> Dedicated clusters</li>
+          <li><span class="yes">✓</span> On-prem TEE + ZK</li>
+          <li><span class="yes">✓</span> Compliance proofs</li>
+          <li><span class="yes">✓</span> SOC2 via ZK</li>
+        </ul>
+        <a class="btn btn-ghost" href="mailto:codesbyfebin@gmail.com?subject=zkvm.host%20Enterprise">Talk to us</a>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top: 22px; font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);">Revenue split: ~70% proof fees · ~20% enterprise · ~10% marketplace take-rate</p>
+  </div>
+</section>
+
+<section class="section reveal">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Why now — 2026</span>
+      <h2>The timing lines up</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="font-size:1rem; font-family:var(--font-body); font-weight:700; margin-bottom:8px;">RISC-V + STARKs is the standard</h3>
+        <p style="font-size:13.5px; color:var(--text-muted);">The abstraction layer is finally feasible — one interface can route to multiple backends without reinventing each one.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem; font-family:var(--font-body); font-weight:700; margin-bottom:8px;">Prover marketplaces just launched</h3>
+        <p style="font-size:13.5px; color:var(--text-muted);">ProverNet (Dec '25) and the Succinct Prover Network (Aug '25) — the supply layer exists. The demand-side DX layer is still missing.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem; font-family:var(--font-body); font-weight:700; margin-bottom:8px;">AI agents need verifiable execution</h3>
+        <p style="font-size:13.5px; color:var(--text-muted);">Every agent action should be provable. No one owns this niche yet — the first-mover advantage is substantial.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem; font-family:var(--font-body); font-weight:700; margin-bottom:8px;">L2s are becoming application-specific</h3>
+        <p style="font-size:13.5px; color:var(--text-muted);">As settlement layers commoditize, application-specific zkVMs need a flexible hosting layer, not a single-chain tool.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="moat">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Competitive moat</span>
+      <h2>Why this, not the alternatives</h2>
+    </div>
+    <div class="moat-wrap">
+      <table class="moat">
+        <thead><tr><th>Alternative</th><th>Where this differs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="who">ProverNet / Succinct<span>Prover marketplaces</span></td>
+            <td class="edge">They're <strong>supply-side</strong> — raw proving capacity. This is the <strong>developer platform</strong> layered on top, using them as backend supply rather than competing with them.</td>
+          </tr>
+          <tr>
+            <td class="who">Custom ZK circuits<span>Hand-optimized</span></td>
+            <td class="edge">This handles the majority of use cases where general-purpose proving wins on time-to-market, with an escape hatch — export the trace — for the cases that need hand-tuned circuits.</td>
+          </tr>
+          <tr>
+            <td class="who">TEE providers<span>Trusted execution</span></td>
+            <td class="edge">TEEs give fast private execution with <strong>no public verifiability</strong>. This gives both: TEE-accelerated proving plus an on-chain, checkable proof.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal">
+  <div class="wrap">
+    <div class="section-head section-head--center">
+      <span class="eyebrow">2030 vision</span>
+      <h2>If it runs, it can be proven</h2>
+    </div>
+    <div class="grid-2">
+      <div class="vision-card"><div class="icon">🏦</div><h3>A DeFi protocol</h3><p>Deploys a private lending engine — <code style="font-family:var(--font-mono); font-size:11.5px;">zkvm.host deploy</code> — and the proof is verified on L1 in under a second.</p></div>
+      <div class="vision-card"><div class="icon">🤖</div><h3>An AI agent</h3><p>Executes a multi-step trade. Every step is proven, so the agent's actions are auditable by any third party without exposing its reasoning.</p></div>
+      <div class="vision-card"><div class="icon">🗳️</div><h3>A governance DAO</h3><p>Runs a confidential vote. The proof of the tally is posted on-chain, with no individual voter's choice ever leaked.</p></div>
+      <div class="vision-card"><div class="icon">🏛️</div><h3>A regulator</h3><p>Verifies a firm's compliance without ever seeing the underlying user data — compliance as a proof, not a disclosure.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="roadmap">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">First 12 months</span>
+      <h2>MVP to product</h2>
+    </div>
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-num">Q1</div>
+        <div class="tl-body">
+          <h3>Foundation</h3>
+          <p>CLI with SP1-only deploy, pay-per-proof API, first design partners onboarded.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Q2</div>
+        <div class="tl-body">
+          <h3>Multi-VM</h3>
+          <p>Router live across SP1 and RISC Zero, CI/CD integration ships, public beta opens.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Q3</div>
+        <div class="tl-body">
+          <h3>Edge and agents</h3>
+          <p>Edge proving SDK, AI agent verification in alpha, ProverNet and Succinct wired in as backend supply.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-num">Q4</div>
+        <div class="tl-body">
+          <h3>Enterprise</h3>
+          <p>Enterprise tier, TEE hybrid mode, sustained throughput of 100k proofs a month.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal quote-section" style="border-bottom:none;">
+  <div class="wrap wrap--narrow">
+    <span class="eyebrow" style="justify-content:center; margin-bottom: 20px;">The pitch</span>
+    <blockquote>"Every cloud platform won by abstracting away servers. zkvm.host abstracts away provers, circuits, and proof systems."</blockquote>
+    <p style="color:var(--text-muted); margin-bottom: 36px;">The deploy button for verifiable computation — and the agentic AI era makes it urgent.</p>
+    <div class="cta-box">
+      <div class="brand" style="justify-content:center; font-size: 17px; margin-bottom: 14px;">
+        <svg class="brand-mark" viewBox="0 0 26 26" aria-hidden="true">
+          <circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+          <path d="M8 13.5l3.4 3.4L18.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        zkvm<span class="dot">.</span>host
+      </div>
+      <p style="font-size:12.5px; color:var(--text-muted); margin-bottom: 22px;">Instantly descriptive, SEO-dominant for "zkVM hosting" — positioned as the infrastructure brand before the category consolidates.</p>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="#demo">Try the deploy →</a>
+        <a class="btn btn-ghost" href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">Read the docs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span class="footer-brand">zkvm.host — deploy verifiable compute</span>
+    <div class="footer-links">
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">Docs</a>
       <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
       <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
-      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/GRANT_PITCH.md">Grant pitch</a>
-      <a href="mailto:codesbyfebin@gmail.com">codesbyfebin@gmail.com</a>
     </div>
-    <p>MIT licensed. Not affiliated with RISC Zero, Succinct (SP1), StarkWare, or
-    Facebook/Meta (Winterfell) — built on top of, and honest about the difference.</p>
   </div>
 </footer>
+
+<script>
+(function () {
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('in-view'); });
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ---- Deploy demo ----
+  var tabs = document.querySelectorAll('.source-tab');
+  var deployBtn = document.getElementById('deployBtn');
+  var termBody = document.getElementById('termBody');
+  var termFile = document.getElementById('termFile');
+  var receipt = document.getElementById('receipt');
+  var running = false;
+  var current = { lang: 'rust', vm: 'SP1', file: 'program.rs' };
+
+  var scripts = {
+    rust: {
+      cmd: 'zkvm.host deploy ./program.rs',
+      lines: [
+        ['dim', 'Parsing source: program.rs (Rust)', 400],
+        ['dim', 'Compiling to RISC-V target…', 700],
+        ['ok', '✓ Compilation successful — 142 constraints', 1100],
+        ['dim', 'Router scoring backends…', 1500],
+        ['warn', '  SP1        94  ★ selected', 1850],
+        ['dim', '  RISC Zero  71', 2000],
+        ['dim', '  Jolt       58', 2150],
+        ['dim', 'Routing to SP1 via ProverNet…', 2500],
+        ['dim', 'Generating STARK proof…', 2950],
+        ['ok', '✓ Proof generated — 1.2s, 4.3 KB', 3800],
+        ['brand', '✓ Endpoint live: https://zkvm.host/p/a3f8c1', 4150]
+      ],
+      out: { endpoint: 'https://zkvm.host/p/a3f8c1', vm: 'SP1', time: '1.2s', cost: '$0.004' }
+    },
+    c: {
+      cmd: 'zkvm.host deploy ./program.c',
+      lines: [
+        ['dim', 'Parsing source: program.c (C)', 400],
+        ['dim', 'Compiling to RISC-V via LLVM…', 700],
+        ['ok', '✓ Compilation successful — 89 constraints', 1100],
+        ['dim', 'Router scoring backends…', 1500],
+        ['warn', '  RISC Zero  96  ★ selected', 1850],
+        ['dim', '  SP1        82', 2000],
+        ['dim', '  Pico       64', 2150],
+        ['dim', 'Routing to RISC Zero via Succinct…', 2500],
+        ['dim', 'Generating STARK proof…', 2950],
+        ['ok', '✓ Proof generated — 2.1s, 6.1 KB', 4000],
+        ['brand', '✓ Endpoint live: https://zkvm.host/p/b7d2e4', 4350]
+      ],
+      out: { endpoint: 'https://zkvm.host/p/b7d2e4', vm: 'RISC Zero', time: '2.1s', cost: '$0.006' }
+    },
+    wasm: {
+      cmd: 'zkvm.host deploy ./module.wasm',
+      lines: [
+        ['dim', 'Parsing source: module.wasm', 400],
+        ['dim', 'Validating module…', 700],
+        ['ok', '✓ Module valid — 2.3 KB, 12 functions', 1050],
+        ['dim', 'Router scoring backends…', 1400],
+        ['warn', '  ZKWASM  98  ★ selected — WASM-native', 1750],
+        ['dim', '  SP1     41  needs WASM→RV translation', 1900],
+        ['dim', '  RISC Zero 38  needs WASM→RV translation', 2050],
+        ['dim', 'Routing to ZKWASM…', 2350],
+        ['dim', 'Generating proof…', 2750],
+        ['ok', '✓ Proof generated — 0.8s, 2.7 KB', 3500],
+        ['brand', '✓ Endpoint live: https://zkvm.host/p/c9a1f6', 3850]
+      ],
+      out: { endpoint: 'https://zkvm.host/p/c9a1f6', vm: 'ZKWASM', time: '0.8s', cost: '$0.003' }
+    }
+  };
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      current = { lang: tab.dataset.lang, vm: tab.dataset.vm, file: tab.dataset.file };
+      termFile.textContent = current.file;
+      termBody.innerHTML = '<div class="ln ln--dim">$ <span class="cursor"></span></div>';
+      receipt.classList.remove('show');
+    });
+  });
+
+  function addLine(cls, text) {
+    var div = document.createElement('div');
+    div.className = 'ln ln--' + cls;
+    div.textContent = text;
+    termBody.appendChild(div);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  deployBtn.addEventListener('click', function () {
+    if (running) return;
+    running = true;
+    deployBtn.disabled = true;
+    deployBtn.textContent = '… deploying';
+    termBody.innerHTML = '';
+    receipt.classList.remove('show');
+
+    var script = scripts[current.lang];
+    addLine('cmd', '$ ' + script.cmd);
+
+    var maxDelay = 0;
+    script.lines.forEach(function (item) {
+      var cls = item[0], text = item[1], delay = item[2];
+      if (delay > maxDelay) maxDelay = delay;
+      setTimeout(function () { addLine(cls, text); }, delay);
+    });
+
+    setTimeout(function () {
+      document.getElementById('rEndpoint').textContent = script.out.endpoint;
+      document.getElementById('rVm').textContent = script.out.vm;
+      document.getElementById('rTime').textContent = script.out.time;
+      document.getElementById('rCost').textContent = script.out.cost;
+      receipt.classList.add('show');
+      deployBtn.disabled = false;
+      deployBtn.textContent = '▸ Deploy again';
+      running = false;
+    }, maxDelay + 500);
+  });
+
+  document.getElementById('rCopy').addEventListener('click', function () {
+    var text = document.getElementById('rEndpoint').textContent;
+    var btn = this;
+    try {
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 1400);
+      });
+    } catch (e) {
+      btn.textContent = 'Copy';
+    }
+  });
+})();
+</script>
 
 </body>
 </html>

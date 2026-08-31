@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hardening a STARK Proving Service: Real Benchmarks, Not Guesses</title>
+<meta name="description" content="A public /v1/proofs endpoint is a CPU-exhaustion vector. Here's how the instruction-count limit was chosen from actual measured proving time, not a round number.">
+<link rel="canonical" href="https://www.zkvm.host/blog/hardening-a-prover-api/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Hardening a STARK Proving Service: Real Benchmarks, Not Guesses",
+  "description": "How an instruction-count limit for a public STARK proving endpoint was chosen from measured proving time, after an initial guess turned out to be wrong.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/hardening-a-prover-api/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">HTTP service · security</span>
+  <h1>Hardening a STARK Proving Service: Real Benchmarks, Not Guesses</h1>
+  <p class="dek">A public "push a program, get a proof" endpoint has an obvious problem: proving is CPU-intensive, and nothing was stopping a small request from asking for a lot of it. Here's what got measured before picking a number.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a></p>
+
+  <p>An external review of this repo correctly flagged that <code>/v1/proofs</code> had no request body limit, no program-size cap, no timeout, and no concurrency limit — a small HTTP request could ask the server to prove an arbitrarily large program, tying up CPU and memory with no backstop. That's a real gap. Fixing it properly meant not guessing at a number.</p>
+
+  <h2>The first number was wrong</h2>
+  <p>The obvious approach: cap the number of instructions a submitted program can have. A first pass picked 10,000 as "generous but bounded" — reasonable-sounding, untested. Writing a test for it (prove a program at exactly the limit) exposed the problem immediately: the test didn't finish in any reasonable time.</p>
+
+  <p>So we measured. <code>zkvm prove</code>, release build, on ordinary dev-laptop hardware, programs shaped like <code>INIT 0</code> followed by N <code>ADD 1</code> instructions:</p>
+
+  <table>
+    <thead><tr><th>Instructions</th><th>Prove time</th></tr></thead>
+    <tbody>
+      <tr><td>1,000</td><td>1.2s</td></tr>
+      <tr><td>2,000</td><td>6.0s</td></tr>
+      <tr><td>4,000</td><td>32.0s</td></tr>
+    </tbody>
+  </table>
+
+  <p>That's clearly worse than linear — doubling the program length roughly quintupled proving time in this range, consistent with the FFT-heavy operations STARK proving involves. At that growth rate, 10,000 instructions would have taken minutes, not seconds — burning full CPU the whole time before any timeout could even help, which would have made the "limit" actively counterproductive: a request within the allowed size that still exhausts the server just more slowly.</p>
+
+  <h2>The number that's actually in the code now</h2>
+  <p><code>MAX_PROGRAM_INSTRUCTIONS</code> is 2,000 — chosen to keep worst-case proving time around 6 seconds on the hardware it was measured on, an order of magnitude under the request timeout, with real margin for slower or loaded production hardware. The comment in the source says exactly this, with the real numbers, not a rationale invented after the fact:</p>
+
+  <pre><code>/// Tuned against real measurements on ordinary dev-laptop hardware
+/// (`zkvm prove`, `INIT 0` + N `ADD 1` instructions, release build):
+/// 2,000 instructions ~6s, 4,000 instructions ~32s -- proving time here
+/// is clearly worse than linear in program length ... Re-measure before
+/// raising this -- it is load-bearing for REQUEST_TIMEOUT actually being
+/// a backstop rather than routine behavior.
+pub const MAX_PROGRAM_INSTRUCTIONS: usize = 2_000;</code></pre>
+
+  <h2>The rest of the hardening</h2>
+  <p>Three more limits, applied uniformly to every route:</p>
+  <ul>
+    <li><strong>Request body cap</strong> (1 MiB) — via axum's built-in <code>DefaultBodyLimit</code>, no extra dependency needed</li>
+    <li><strong>Per-request timeout</strong> (60s) — <code>tower_http::timeout::TimeoutLayer</code>, which returns a proper 408 response rather than the awkward error-type wrapping <code>tower</code>'s own core timeout needs for an axum service</li>
+    <li><strong>Concurrency cap</strong> (4 in-flight requests) — <code>tower::limit::ConcurrencyLimitLayer</code>, so parallel proving requests queue instead of running unbounded in parallel</li>
+  </ul>
+
+  <p>The instruction-count check itself lives in one place (<code>check_program_size</code>) and is called at every entry point that can trigger proving or verification work — the plain <code>/v1/proofs</code>/<code>/v1/verify</code> handlers, the <code>/v1/backends/*</code> router path, and the MCP <code>prove</code>/<code>verify</code> tools — rather than trusting each call site to remember to add it separately.</p>
+
+  <p class="callout"><strong>What's still not covered:</strong> auth/API keys, per-tenant accounting, structured audit logs, and metrics/tracing don't exist yet. A queued request that never gets served still doesn't turn into an explicit 503 today. These are named gaps, not silent ones — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a>.</p>
+
+  <div class="post-footer">
+    Full source: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/lib.rs">crates/zkvm-host-server/src/lib.rs</a>, tests in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/tests/api.rs">tests/api.rs</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

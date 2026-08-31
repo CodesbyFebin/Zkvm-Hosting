@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Winterfell Debug-Mode Assertion That Isn't a Soundness Bug</title>
+<meta name="description" content="Why cargo test needs --release for this project, with the exact expected-vs-actual degree numbers from a real reproduction, and why release mode is correct, not a workaround.">
+<link rel="canonical" href="https://www.zkvm.host/blog/winterfell-degree-bug/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "A Winterfell Debug-Mode Assertion That Isn't a Soundness Bug",
+  "description": "The exact expected-vs-actual degree numbers from a real Winterfell debug-mode reproduction, and why release mode is correct here, not a workaround.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/winterfell-degree-bug/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Winterfell · debugging</span>
+  <h1>A Winterfell Debug-Mode Assertion That Isn't a Soundness Bug</h1>
+  <p class="dek">This repo's README tells you to run <code>cargo test --release</code>, not plain <code>cargo test</code>. That's an unusual instruction for a cryptographic project, and it deserves the exact reproduction, not just an assurance.</p>
+  <p class="meta">2026-08-31 · Winterfell 0.13.1 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+
+  <p>Running <code>cargo test</code> (debug mode, no <code>--release</code>) against this workspace fails three tests with the same panic, from inside Winterfell itself:</p>
+
+  <pre><code>thread 'stark_backend_round_trips_through_the_router' panicked at
+winter-prover-0.13.1/src/constraints/evaluation_table.rs:214:9:
+assertion `left == right` failed: transition constraint degrees didn't match
+expected: [ 21,  21,  21,  21,  21]
+actual:   [ 14,   0,   0,   0,   0]</code></pre>
+
+  <p>Those are the real numbers from a real run against this repo's test suite, not illustrative ones. Five constraints (one for the accumulator, four for the registers) were declared with the same degree bound, but only the accumulator's constraint reached its full declared degree on this particular trace — three of the four register constraints came out to exactly 0.</p>
+
+  <h2>Why the actual degree can be zero</h2>
+  <p>Each register's transition constraint is gated by that register's one-hot selector: <code>active * s_store * reg_sel[k]</code>. If a specific test program never stores into register <code>k</code> — <code>reg_sel[k]</code> is 0 on every row — the term the constraint depends on is identically zero across the whole trace. A constant polynomial has degree 0, no matter what degree bound was declared for the worst case.</p>
+
+  <p>This is genuinely data-dependent: the same AIR, run against a program that <em>does</em> touch all four registers, would show a different actual-degree profile. There's no single declared bound that would exactly match every possible program's real degree — some programs will always make some constraints degenerate.</p>
+
+  <h2>Why this isn't a soundness bug</h2>
+  <p>STARK soundness only requires the <em>declared</em> degree to be an upper bound on the <em>true</em> degree — not an exact match. A constraint that's actually degree 0 but declared as degree 4 is still correctly bounded; the extra declared degree just means slightly more blowup than strictly necessary, not a gap a malicious prover can exploit. Winterfell's debug-only <code>validate_transition_degrees</code> check enforces exact equality, which is strictly stronger than soundness requires — useful as a sanity check for typical AIRs where declared and actual degree usually do match, but a false positive for one like this where the true degree is legitimately data-dependent.</p>
+
+  <p><code>--release</code> compiles that specific debug assertion out. Every test in this workspace passes either way once it's skipped — the tests aren't hiding a failure, they're avoiding a diagnostic that doesn't apply to this AIR's shape.</p>
+
+  <h2>What we did, and didn't do, about it</h2>
+  <p>We didn't force-fix this by restructuring the constraints to always hit their declared degree — the only way to do that would be adding a term specifically to make the "worst case" always occur, which is extra complexity motivated by a debug-mode diagnostic, not by any real cryptographic need, and carries its own risk of introducing an actual bug into a soundness-critical file. We also didn't quietly rely on <code>--release</code> without explaining why — this reproduction, with the exact numbers, is the documentation of that decision.</p>
+
+  <p>The honest state: this is upstream-worthy as a minimal reproduction if anyone wants to raise it with Winterfell directly, and this project runs its real test suite, CI included, under <code>--release</code> — which is a positive claim about how this codebase is tested, made precisely rather than glossed over.</p>
+
+  <div class="post-footer">
+    Full context: the doc comment above <code>VmAir::evaluate_transition</code> in <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

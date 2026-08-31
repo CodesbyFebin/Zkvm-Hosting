@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connecting Claude to a Real STARK Prover via MCP</title>
+<meta name="description" content="How this project's prove/verify tools are exposed over MCP, verified against a real client handshake -- and what the verify tool re-checks rather than trusting.">
+<link rel="canonical" href="https://www.zkvm.host/blog/mcp-meets-stark/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Connecting Claude to a Real STARK Prover via MCP",
+  "description": "How prove/verify tools are exposed over MCP, verified against a real client handshake.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/mcp-meets-stark/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">MCP</span>
+  <h1>Connecting Claude to a Real STARK Prover via MCP</h1>
+  <p class="dek">A cryptographic prover exposed as two MCP tools: prove and verify. Built against rmcp's real API, verified against its own examples rather than guessed — and the same never-trust-the-prover's-own-claim discipline applies here too.</p>
+  <p class="meta">2026-08-31 · rmcp 3.1 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-host-server/src/mcp.rs">crates/zkvm-host-server/src/mcp.rs</a></p>
+
+  <p>MCP (Model Context Protocol) is how an AI assistant calls tools directly rather than a human copy-pasting CLI output into a chat window. This project exposes exactly two tools over it — <code>prove</code> and <code>verify</code> — running on their own port, separate from the plain HTTP API.</p>
+
+  <h2>Why a separate port</h2>
+  <p>The obvious design would nest the MCP handler onto the same axum router as <code>/v1/proofs</code>. That doesn't actually work cleanly: <code>rmcp</code>'s <code>StreamableHttpService</code> implements <code>tower::Service</code>, but its response body type doesn't line up with <code>axum::Router::nest_service</code> without writing an adapter — and <code>rmcp</code>'s own upstream examples serve it via a raw hyper accept loop for that exact reason. Rather than claim an integration that wasn't actually verified to work, the MCP server runs on port 4478, the HTTP API on 4477, and the doc comment in the source says why, instead of presenting a workaround as if it were the obvious design.</p>
+
+  <h2>The two tools</h2>
+  <pre><code>#[tool(description = "Generate a real STARK proof that a .zkasm program \
+executes to its claimed result. Returns the base64-encoded proof and \
+the (initial, result) public inputs.")]
+async fn prove(&self, Parameters(args): Parameters&lt;ProveArgs&gt;)
+    -> Result&lt;CallToolResult, McpError&gt;
+
+#[tool(description = "Verify a proof (from the prove tool) against the \
+exact .zkasm program it claims to be for. Re-executes the program \
+locally to know what to check -- it never trusts the proof's own \
+claims.")]
+async fn verify(&self, Parameters(args): Parameters&lt;VerifyArgs&gt;)
+    -> Result&lt;CallToolResult, McpError&gt;</code></pre>
+
+  <p>The tool descriptions aren't just documentation for a human reading the source — they're what an MCP client (Claude Desktop, Cursor, anything speaking the protocol) actually sees when deciding whether and how to call the tool. Getting them accurate matters the same way an API's actual behavior does.</p>
+
+  <h2>verify doesn't trust prove's answer</h2>
+  <p>The <code>verify</code> tool takes a program and a base64-encoded proof, and does exactly what the CLI's <code>verify</code> command and the HTTP server's <code>/v1/verify</code> endpoint do: parse the program, re-execute it locally, build the expected public inputs from that re-execution, and only then check the proof against them:</p>
+
+  <pre><code>let padded = program.padded();
+let pub_inputs = public_inputs_for_program(&padded);
+match verify_program(proof, pub_inputs) { ... }</code></pre>
+
+  <p>An MCP client calling <code>verify</code> isn't trusting whatever the <code>prove</code> call (possibly from a different, untrusted source) claimed — it's getting an independent check, the same trust boundary <a href="/blog/no-secret-witness/">the rest of this project</a> relies on everywhere else.</p>
+
+  <h2>Verified, not assumed</h2>
+  <p>The claim "this actually works as an MCP server" isn't just "it compiles" — it's confirmed by capturing a real transcript against a running server: a real <code>initialize</code> handshake, followed by real <code>tools/call</code> invocations for both <code>prove</code> and <code>verify</code>, via <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/scripts/mcp_demo.sh">scripts/mcp_demo.sh</a>. That script exists specifically so "the MCP integration works" is a thing that gets exercised, not just declared.</p>
+
+  <div class="post-footer">
+    Setup instructions for Claude Desktop / Cursor: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/MCP.md">docs/MCP.md</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

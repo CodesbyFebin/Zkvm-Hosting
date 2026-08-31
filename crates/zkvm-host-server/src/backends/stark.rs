@@ -17,6 +17,7 @@ impl ProverBackend for StarkBackend {
     }
 
     async fn prove(&self, program: &Program) -> Result<BackendProof, BackendError> {
+        crate::check_program_size(program).map_err(BackendError)?;
         let (proof, pub_inputs) = prove_program(program).map_err(BackendError)?;
         let bytes = proof_to_bytes(&proof);
         Ok(BackendProof {
@@ -31,6 +32,7 @@ impl ProverBackend for StarkBackend {
     }
 
     async fn verify(&self, program: &Program, proof_bytes: &[u8]) -> Result<bool, BackendError> {
+        crate::check_program_size(program).map_err(BackendError)?;
         let proof = proof_from_bytes(proof_bytes).map_err(BackendError)?;
         let padded = program.padded();
         let pub_inputs = public_inputs_for_program(&padded);

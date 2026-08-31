@@ -23,7 +23,9 @@ async-trait = "0.1"
 thiserror = "2"
 rmcp = { version = "3.1", features = ["server", "macros", "transport-streamable-http-server"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto"] }
+tower = { version = "0.5", features = ["limit"] }
+tower-http = { version = "0.7", features = ["timeout"] }
 
 [dev-dependencies]
-tower = { version = "0.5", features = ["util"] }
+tower = { version = "0.5", features = ["util", "limit"] }
 http-body-util = "0.1"

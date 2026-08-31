@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>zkvm.host Blog</title>
+<meta name="description" content="Technical write-ups on this zkVM's actual soundness arguments, engineering decisions, benchmarks, and fixes -- each one checkable against the real repo.">
+<link rel="canonical" href="https://www.zkvm.host/blog/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "zkvm.host Blog",
+  "url": "https://www.zkvm.host/blog/",
+  "publisher": { "@type": "Organization", "name": "zkvm.host" }
+}
+</script>
+<style>
+  .posts { list-style: none; padding: 0; margin: 0; }
+  .post-item { padding: 26px 0; border-top: 1px solid var(--border); }
+  .post-item:first-child { border-top: none; }
+  .post-item h2 { font-size: 1.25rem; margin: 0 0 8px; }
+  .post-item h2 a { text-decoration: none; color: var(--text); }
+  .post-item h2 a:hover { color: var(--accent-strong); }
+  .post-item p { color: var(--text-muted); font-size: 0.95em; margin: 0; }
+  .post-item .tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/dashboard/">Dashboard</a>
+      <a href="/funding/">Funding</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Blog</span>
+  <h1>Notes from building a small, real zkVM</h1>
+  <p class="dek">Each post below is grounded in the actual repo — real code, real measurements, real test names. Where a number appears, it was measured before it was published, not estimated.</p>
+
+  <ul class="posts">
+    <li class="post-item">
+      <span class="tag">AIR design</span>
+      <h2><a href="/blog/no-secret-witness/">Why This zkVM's Soundness Doesn't Need a Lookup Argument</a></h2>
+      <p>How branch outcomes and register accesses are asserted directly instead of derived algebraically — and exactly where that stops working.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">AIR design</span>
+      <h2><a href="/blog/registers-without-a-mux/">A Register File Without an Algebraic Mux</a></h2>
+      <p>How a one-hot selector proves which register a LOAD/STORE touched, and the negative test that checks lying about it fails.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">Investigation</span>
+      <h2><a href="/blog/why-not-sp1/">We Investigated Adding an SP1 Backend. Here's Why We Didn't.</a></h2>
+      <p>518 dependencies, a Go FFI requirement, and a fundamental ISA mismatch — the real numbers behind a real "no."</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">Winterfell</span>
+      <h2><a href="/blog/winterfell-degree-bug/">A Winterfell Debug-Mode Assertion That Isn't a Soundness Bug</a></h2>
+      <p>The exact expected-vs-actual degree numbers from a real reproduction, and why release mode is correct here.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">Scoping</span>
+      <h2><a href="/blog/loops-are-hard/">Why Forward-Only Jumps, and What Loops Would Actually Require</a></h2>
+      <p>The specific reason JZ/JNZ can't jump backward yet, and what changes when trace length depends on runtime behavior.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">On-chain</span>
+      <h2><a href="/blog/onchain-trust-bridge/">An Honest On-Chain Verifier: What AttestedVerifier Actually Guarantees</a></h2>
+      <p>Why the contract is named AttestedVerifier and not StarkVerifier, and what a real one would require instead.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">Security</span>
+      <h2><a href="/blog/hardening-a-prover-api/">Hardening a STARK Proving Service: Real Benchmarks, Not Guesses</a></h2>
+      <p>An initial instruction-count limit turned out to be wildly wrong. Here's the measurement that fixed it.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">API design</span>
+      <h2><a href="/blog/the-public-inputs-footgun/">A Code Review Caught a Real API Footgun. Here's the Fix.</a></h2>
+      <p>A function that took a program and silently ignored it — verified, fixed, and confirmed through real CI.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">MCP</span>
+      <h2><a href="/blog/mcp-meets-stark/">Connecting Claude to a Real STARK Prover via MCP</a></h2>
+      <p>Two real MCP tools, verified against an actual client handshake — and why they run on their own port.</p>
+    </li>
+    <li class="post-item">
+      <span class="tag">Benchmarks</span>
+      <h2><a href="/blog/sub-10ms-verify/">What Sub-10ms STARK Verification Actually Requires</a></h2>
+      <p>The precise methodology behind a benchmark claim, and the trace size where it stops holding.</p>
+    </li>
+  </ul>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/">Home</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

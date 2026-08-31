@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Register File Without an Algebraic Mux</title>
+<meta name="description" content="How LOAD/STORE addressing across four registers is proven sound in a STARK AIR without a permutation argument, and the negative tests that check it.">
+<link rel="canonical" href="https://www.zkvm.host/blog/registers-without-a-mux/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "A Register File Without an Algebraic Mux",
+  "description": "How LOAD/STORE addressing across four registers is proven sound in a STARK AIR without a permutation argument.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/registers-without-a-mux/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">AIR design</span>
+  <h1>A Register File Without an Algebraic Mux</h1>
+  <p class="dek">Four registers, addressed by <code>LOAD</code>/<code>STORE</code>. The obvious way to prove "this instruction touched register 2, not register 0" needs a selection argument. This VM asserts it instead — and tests specifically that lying about it gets caught.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a></p>
+
+  <p>Adding a register file to a STARK VM is a natural second step after straight-line arithmetic — <code>examples/counter.zkasm</code> is the first program that needs to hold a value across unrelated computation. The obvious design question: when a row executes <code>STORE r2</code>, how does the AIR prove that register 2, specifically, got updated, and the other three didn't?</p>
+
+  <h2>The one-hot column</h2>
+  <p>Each row carries a one-hot <code>reg_sel</code> array — four field elements, one per register, exactly one of them equal to 1:</p>
+
+  <pre><code>pub struct ProgramRow {
+    ...
+    pub reg_sel: [BaseElement; NUM_REGISTERS],
+}</code></pre>
+
+  <p>The same argument from <a href="/blog/no-secret-witness/">the no-secret-witness post</a> applies directly here: since the program is public, the verifier already knows which register every <code>LOAD</code>/<code>STORE</code> in the program addresses, at parse time. So <code>reg_sel</code> isn't derived by the AIR — it's asserted, one boundary constraint per register per row, exactly like the opcode selectors and the <code>active</code> flag.</p>
+
+  <h2>What's actually constrained</h2>
+  <p>Given <code>reg_sel</code> as already-known-correct, the register file's transition constraint for register <code>k</code> reads, roughly:</p>
+
+  <pre><code>write_k = active * s_store * reg_sel[k]
+next_register[k] = if write_k { acc } else { current_register[k] }</code></pre>
+
+  <p>One constraint per register, degree 4 in the worst case (<code>active * s_store * reg_sel[k]</code> multiplied against the value being written) — the same shape as the accumulator constraint, just gated by an extra one-hot factor. Four registers means four of these constraints running in parallel, each one only firing on the rows where its own <code>reg_sel[k]</code> is 1.</p>
+
+  <h2>The negative test that actually matters</h2>
+  <p>The soundness claim here isn't "the honest prover produces a correct proof" — that's the easy direction. It's "a prover cannot claim a different register was touched and still verify." The test suite checks this directly, not just conceptually:</p>
+
+  <pre><code>#[test]
+fn rejects_a_claimed_register_selector_that_does_not_match_the_proof() {
+    // ... generate a real proof, then tamper with reg_sel in the
+    // public inputs before verifying ...
+    assert!(verify_program(proof, tampered_inputs).is_err());
+}</code></pre>
+
+  <p>That test exists specifically because the register selector is a value the AIR trusts without algebraic derivation — the whole soundness argument rests on the verifier building it correctly from the program, and on a mismatched one causing rejection every time. That's what the test actually exercises.</p>
+
+  <h2>Why four, and why static</h2>
+  <p>Four registers is a small, deliberately narrow slice: enough to prove something needs more than one live value (the accumulator alone isn't sufficient once a program has to hold a result across unrelated arithmetic), not enough to look like general memory. <code>reg_sel</code> being one-hot over a <em>fixed</em> set of four only works because the register a given instruction touches is baked into the instruction at parse time — <code>STORE r2</code> is syntactically fixed, not a runtime-computed address. That's exactly the boundary <a href="/blog/no-secret-witness/">the soundness-trick post</a> flags: real memory, where the address is itself a trace value, is a materially different problem.</p>
+
+  <div class="post-footer">
+    Full source and tests: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/crates/zkvm-stark/src/lib.rs">crates/zkvm-stark/src/lib.rs</a>, <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/examples/counter.zkasm">examples/counter.zkasm</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

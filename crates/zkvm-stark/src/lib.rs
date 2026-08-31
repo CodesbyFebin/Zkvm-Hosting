@@ -24,7 +24,7 @@ use winter_math::{fields::f128::BaseElement, FieldElement, ToElements};
 use winterfell::{
     crypto::{hashers::Blake3_256, DefaultRandomCoin, MerkleTree},
     matrix::ColMatrix,
-    Air, AirContext, AcceptableOptions, Assertion, AuxRandElements, BatchingMethod,
+    AcceptableOptions, Air, AirContext, Assertion, AuxRandElements, BatchingMethod,
     CompositionPoly, CompositionPolyTrace, ConstraintCompositionCoefficients,
     DefaultConstraintCommitment, DefaultConstraintEvaluator, DefaultTraceLde, EvaluationFrame,
     FieldExtension, PartitionOptions, ProofOptions, Prover, StarkDomain, Trace, TraceInfo,
@@ -99,8 +99,15 @@ impl ToElements<BaseElement> for PublicInputs {
         let mut elements = vec![self.initial, self.result];
         for row in &self.program {
             elements.extend_from_slice(&[
-                row.s_add, row.s_sub, row.s_mul, row.s_jz, row.s_jnz, row.s_load, row.s_store,
-                row.right, row.active,
+                row.s_add,
+                row.s_sub,
+                row.s_mul,
+                row.s_jz,
+                row.s_jnz,
+                row.s_load,
+                row.s_store,
+                row.right,
+                row.active,
             ]);
             elements.extend_from_slice(&row.reg_sel);
         }
@@ -120,7 +127,11 @@ impl ToElements<BaseElement> for PublicInputs {
 pub fn public_inputs_for_program(program: &Program) -> PublicInputs {
     let trace = zkvm_isa::execute(program);
     PublicInputs {
-        initial: trace.rows.first().map(|r| r.acc).unwrap_or(BaseElement::ZERO),
+        initial: trace
+            .rows
+            .first()
+            .map(|r| r.acc)
+            .unwrap_or(BaseElement::ZERO),
         result: trace.result,
         program: trace.rows.iter().map(ProgramRow::from).collect(),
     }
@@ -433,7 +444,14 @@ mod tests {
 
     fn sample_program() -> Program {
         // ((5 + 3) * 2) - 4 == 12
-        Program::new(5, vec![Instruction::Add(3), Instruction::Mul(2), Instruction::Sub(4)])
+        Program::new(
+            5,
+            vec![
+                Instruction::Add(3),
+                Instruction::Mul(2),
+                Instruction::Sub(4),
+            ],
+        )
     }
 
     #[test]

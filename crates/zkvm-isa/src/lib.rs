@@ -78,7 +78,17 @@ impl Instruction {
         if let Instruction::Load(r) | Instruction::Store(r) = self {
             reg_sel[r as usize] = o;
         }
-        Selectors { s_add, s_sub, s_mul, s_jz, s_jnz, s_load, s_store, right, reg_sel }
+        Selectors {
+            s_add,
+            s_sub,
+            s_mul,
+            s_jz,
+            s_jnz,
+            s_load,
+            s_store,
+            right,
+            reg_sel,
+        }
     }
 
     fn is_branch(self) -> bool {
@@ -112,7 +122,10 @@ pub struct Program {
 
 impl Program {
     pub fn new(initial: u64, instructions: Vec<Instruction>) -> Self {
-        Self { initial, instructions }
+        Self {
+            initial,
+            instructions,
+        }
     }
 
     /// Parses the tiny assembly format used by the CLI and examples:
@@ -155,7 +168,9 @@ impl Program {
             }
             let mut parts = line.split_whitespace();
             let op = parts.next().ok_or("missing opcode")?;
-            let arg_token = parts.next().ok_or_else(|| format!("missing operand for {op}"))?;
+            let arg_token = parts
+                .next()
+                .ok_or_else(|| format!("missing operand for {op}"))?;
             let index = instructions.len() as u64;
 
             let instruction = match op.to_ascii_uppercase().as_str() {
@@ -186,19 +201,29 @@ impl Program {
         let mut instructions = self.instructions.clone();
         let target = instructions.len().max(8).next_power_of_two();
         instructions.resize(target, Instruction::Add(0));
-        Program { initial: self.initial, instructions }
+        Program {
+            initial: self.initial,
+            instructions,
+        }
     }
 }
 
 fn parse_u64(token: &str, op: &str) -> Result<u64, String> {
-    token.parse().map_err(|e| format!("bad operand for {op}: {e}"))
+    token
+        .parse()
+        .map_err(|e| format!("bad operand for {op}: {e}"))
 }
 
 fn parse_register(token: &str) -> Result<u64, String> {
-    let rest = token
-        .strip_prefix(['r', 'R'])
-        .ok_or_else(|| format!("expected a register name like r0..r{}, found {token}", NUM_REGISTERS - 1))?;
-    let index: u64 = rest.parse().map_err(|e| format!("bad register name {token}: {e}"))?;
+    let rest = token.strip_prefix(['r', 'R']).ok_or_else(|| {
+        format!(
+            "expected a register name like r0..r{}, found {token}",
+            NUM_REGISTERS - 1
+        )
+    })?;
+    let index: u64 = rest
+        .parse()
+        .map_err(|e| format!("bad register name {token}: {e}"))?;
     if index as usize >= NUM_REGISTERS {
         return Err(format!(
             "register {token} out of range: only r0..r{} exist",
@@ -225,7 +250,9 @@ fn collect_labels(body: &[&str]) -> Result<HashMap<String, u64>, String> {
 }
 
 fn resolve_target(token: &str, labels: &HashMap<String, u64>, from: u64) -> Result<u64, String> {
-    let target = *labels.get(token).ok_or_else(|| format!("undefined label: {token}"))?;
+    let target = *labels
+        .get(token)
+        .ok_or_else(|| format!("undefined label: {token}"))?;
     if target <= from {
         return Err(format!(
             "backward or self jump to '{token}' (target {target} <= instruction {from}): only forward jumps are supported"
@@ -312,7 +339,11 @@ pub fn execute(program: &Program) -> ExecutionTrace {
             s_store: sel.s_store,
             right: sel.right,
             reg_sel: sel.reg_sel,
-            active: if active { BaseElement::ONE } else { BaseElement::ZERO },
+            active: if active {
+                BaseElement::ONE
+            } else {
+                BaseElement::ZERO
+            },
         });
 
         if active {
@@ -323,7 +354,11 @@ pub fn execute(program: &Program) -> ExecutionTrace {
                 _ => false,
             };
             if instr.is_branch() {
-                pc = if branch_taken { instr.immediate() } else { i + 1 };
+                pc = if branch_taken {
+                    instr.immediate()
+                } else {
+                    i + 1
+                };
             } else {
                 match instr {
                     Instruction::Add(_) => acc += sel.right,
@@ -351,7 +386,11 @@ mod tests {
         // ((5 + 3) * 2) - 4 == 12
         let program = Program::new(
             5,
-            vec![Instruction::Add(3), Instruction::Mul(2), Instruction::Sub(4)],
+            vec![
+                Instruction::Add(3),
+                Instruction::Mul(2),
+                Instruction::Sub(4),
+            ],
         );
         let trace = execute(&program);
         assert_eq!(trace.result, BaseElement::from(12u64));
@@ -455,7 +494,8 @@ mod tests {
     fn a_register_survives_a_skipped_branch() {
         // Stash 42 in r0, then a branch that's NOT taken still leaves r0 intact.
         let program =
-            Program::parse("INIT 42\nSTORE r0\nADD 1\nJZ skip\nADD 1000\nskip:\nLOAD r0\n").unwrap();
+            Program::parse("INIT 42\nSTORE r0\nADD 1\nJZ skip\nADD 1000\nskip:\nLOAD r0\n")
+                .unwrap();
         let trace = execute(&program);
         // acc after STORE/ADD1 = 43 (nonzero) -> JZ not taken -> ADD 1000 -> 1043 -> LOAD r0 -> 42
         assert_eq!(trace.result, BaseElement::from(42u64));

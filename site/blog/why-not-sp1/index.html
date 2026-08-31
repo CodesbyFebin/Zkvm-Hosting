@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>We Investigated Adding an SP1 Backend. Here's Why We Didn't.</title>
+<meta name="description" content="Real dependency counts, a Go FFI requirement, and a from-first-principles look at why SP1 doesn't fit a custom-ISA zkVM -- with the actual numbers, not a vague 'too complex.'">
+<link rel="canonical" href="https://www.zkvm.host/blog/why-not-sp1/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "We Investigated Adding an SP1 Backend. Here's Why We Didn't.",
+  "description": "Real dependency counts, a Go FFI requirement, and a from-first-principles look at why SP1 doesn't fit a custom-ISA zkVM.",
+  "author": { "@type": "Organization", "name": "zkvm.host" },
+  "mainEntityOfPage": "https://www.zkvm.host/blog/why-not-sp1/",
+  "datePublished": "2026-08-31"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Investigation</span>
+  <h1>We Investigated Adding an SP1 Backend. Here's Why We Didn't.</h1>
+  <p class="dek">This project's HTTP server has a <code>ProverBackend</code> trait built specifically to support more than one proving backend. SP1 was the obvious first candidate to add. Here's what actually happened when we tried.</p>
+  <p class="meta">2026-08-31 · <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a></p>
+
+  <p>"Multi-VM router" is easy to claim and hard to actually build — most projects that say it either have one real backend and N stubs, or haven't tried adding the second one yet. Before writing that claim into this project's own docs, we tried adding SP1 as a real second backend, verified every API claim against SP1's actual source at a pinned version (not assumed from memory), and wrote down exactly why it didn't ship.</p>
+
+  <h2>What actually checked out</h2>
+  <p>SP1's Rust API is real and does what its docs say:</p>
+  <ul>
+    <li><code>ProverClient::from_env()</code> — confirmed against the real source, not guessed</li>
+    <li><code>setup()</code> returns a single <code>SP1ProvingKey</code>, not a <code>(pk, vk)</code> tuple — an earlier pasted integration draft claimed the tuple form and was wrong; the real signature only became clear from reading SP1's source at the exact tag</li>
+    <li><code>prove()</code> takes <code>stdin</code> by value, not by reference — same story, a plausible-looking draft got this backward</li>
+  </ul>
+  <p>Both corrections came from reading the actual crate source at a pinned version, not from documentation summaries or memory — which is the same discipline applied throughout this repo: verify the exact API before writing code against it, or don't write the code yet.</p>
+
+  <h2>What didn't check out</h2>
+  <table>
+    <thead><tr><th>Finding</th><th>What we measured</th></tr></thead>
+    <tbody>
+      <tr><td>Dependency count for a bare hello-world SP1 program</td><td>518 resolved crates — more than 3x this entire workspace's own dependency count</td></tr>
+      <tr><td>Native toolchain requirement</td><td>A Go-based FFI dependency (<code>sp1-recursion-gnark-ffi</code>) for Groth16 wrapping — a second language toolchain just to link the prover</td></tr>
+      <tr><td>Build time before reaching a working state</td><td><code>cargo check</code> ran for roughly 4 minutes before failing on a missing system dependency (<code>protoc</code>) — before ever reaching the RISC-V toolchain step, let alone producing a proof</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The more fundamental mismatch</h2>
+  <p>Even past the dependency weight, there's an architectural problem that no amount of patience with the build fixes: <strong>SP1 proves compiled RISC-V ELF binaries.</strong> This project's ISA is <code>.zkasm</code> — a custom, minimal instruction set with no RISC-V compatibility layer. Wiring SP1 in isn't "add a backend," it's "build a compiler from <code>.zkasm</code> to RISC-V first," which is a different, much larger project than a proving-backend integration.</p>
+
+  <p>That's the fork this investigation actually surfaced: keep extending <code>.zkasm</code> as its own ISA and own that stack end to end, or treat <code>.zkasm</code> as a demo fixture and make the router the real product, accepting whatever ISA a backend brings. This project chose the former — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md">docs/ROADMAP.md</a> for the reasoning. The <code>ProverBackend</code> trait and <code>ProverRouter</code> stay in the codebase either way — future backends aren't ruled out — but they'd need to speak this ISA's semantics, not plug in as-is.</p>
+
+  <div class="callout"><strong>What's real today:</strong> one proving backend (<code>stark</code>, this project's own Winterfell-based prover) and one honestly-labeled routing stub (<code>mock-echo</code>), which refuses to verify anything rather than faking success. <code>GET /v1/backends</code> reports exactly that — a checkable claim, not marketing copy.</div>
+
+  <div class="post-footer">
+    Full writeup: <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/HOST_SERVICE.md">docs/HOST_SERVICE.md</a>.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/blog/">All posts</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
