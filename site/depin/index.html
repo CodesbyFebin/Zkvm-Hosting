@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zkvm.host — DePIN Design Sketch</title>
+    <meta name="description" content="A design sketch for a decentralized proving network on top of zkvm-isa/zkvm-stark: node, orchestrator, P2P mesh, and an incentive layer. Unbuilt -- a simulation and code sketch, not a live network.">
+    <link rel="canonical" href="https://www.zkvm.host/depin/">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        zk: {
+                            50: '#f0f0ff', 100: '#e0e0ff', 200: '#c4b5fd', 300: '#a78bfa',
+                            400: '#8b5cf6', 500: '#7c3aed', 600: '#6d28d9', 700: '#5b21b6',
+                            800: '#4c1d95', 900: '#2e1065', 950: '#1a0a3e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #06060f;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-border {
+            position: relative;
+            background: #0d0d1f;
+            border-radius: 1rem;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+        }
+        .gradient-border:hover { border-color: rgba(124, 58, 237, 0.25); }
+        .glow-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glow-card:hover { transform: translateY(-2px); box-shadow: 0 20px 60px rgba(124, 58, 237, 0.12); }
+        .nav-link { position: relative; transition: color 0.3s ease; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 0; height: 2px; background: #7c3aed; transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .code-block {
+            background: #080818; border: 1px solid #1a1a35; border-radius: 0.75rem;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.7;
+            overflow-x: auto;
+        }
+        .code-block::-webkit-scrollbar { height: 4px; }
+        .code-block::-webkit-scrollbar-track { background: transparent; }
+        .code-block::-webkit-scrollbar-thumb { background: #7c3aed33; border-radius: 2px; }
+        .tab-btn { transition: all 0.3s ease; border-bottom: 2px solid transparent; cursor: pointer; }
+        .tab-btn.active { color: #a78bfa; border-bottom-color: #7c3aed; }
+        .fade-in { opacity: 0; transform: translateY(30px); }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        #networkCanvas { border-radius: 1rem; }
+        .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+        @keyframes pulseDot { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
+        .status-online { color: #34d399; }
+        .status-busy { color: #fbbf24; }
+        .status-offline { color: #6b7280; }
+        .metric-glow { text-shadow: 0 0 20px rgba(124, 58, 237, 0.5); }
+        .flow-arrow { animation: flowPulse 2s ease-in-out infinite; }
+        @keyframes flowPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .task-item { animation: slideIn 0.4s ease-out forwards; opacity: 0; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #06060f; }
+        ::-webkit-scrollbar-thumb { background: #7c3aed44; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed88; }
+        .arch-layer { transition: all 0.3s ease; cursor: pointer; }
+        .arch-layer:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(124, 58, 237, 0.15); }
+        .docker-pulse { animation: dockerPulse 4s ease-in-out infinite; }
+        @keyframes dockerPulse { 0%, 100% { border-color: rgba(59, 130, 246, 0.2); } 50% { border-color: rgba(59, 130, 246, 0.5); } }
+        .sketch-banner {
+            background: linear-gradient(90deg, rgba(251,191,36,0.08), rgba(251,191,36,0.02));
+            border: 1px solid rgba(251,191,36,0.25);
+        }
+    </style>
+</head>
+<body class="grid-bg">
+    <div class="sketch-banner text-center py-2.5 px-4">
+        <p class="text-[12.5px] text-amber-200">
+            <strong>Unbuilt design sketch</strong> — the network below is a client-side simulation and the code samples are illustrative, not integrated into the real repo. See
+            <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="underline hover:text-amber-100">what's actually shipped on GitHub</a>.
+        </p>
+    </div>
+
+    <nav class="sticky top-0 z-50 backdrop-blur-xl bg-[#06060f]/80 border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-zk-400 to-cyan-400 flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">zk</span>
+                </div>
+                <span class="font-bold text-lg">zkVM<span class="text-zk-400">.host</span> <span class="text-xs text-gray-500 ml-2 hidden sm:inline">DePIN sketch</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="/" class="nav-link text-sm text-gray-400 hover:text-white">Home</a>
+                <a href="#overview" class="nav-link text-sm text-gray-400 hover:text-white">Overview</a>
+                <a href="#architecture" class="nav-link text-sm text-gray-400 hover:text-white">Architecture</a>
+                <a href="#network" class="nav-link text-sm text-gray-400 hover:text-white">Simulation</a>
+                <a href="#code" class="nav-link text-sm text-gray-400 hover:text-white">Design sketch</a>
+                <a href="#pain-points" class="nav-link text-sm text-gray-400 hover:text-white">Rationale</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span class="text-xs text-amber-300 font-mono">Simulated</span>
+                </div>
+                <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="px-4 py-2 bg-zk-600 hover:bg-zk-500 text-white text-sm font-medium rounded-lg transition-colors">
+                    View real repo
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-16">
+        <div class="absolute w-[500px] h-[500px] rounded-full bg-zk-500/10 blur-[120px] top-1/4 left-1/4 pointer-events-none"></div>
+        <div class="absolute w-[400px] h-[400px] rounded-full bg-cyan-500/10 blur-[120px] bottom-1/4 right-1/4 pointer-events-none"></div>
+
+        <div class="relative z-10 text-center max-w-5xl mx-auto px-6 py-16">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zk-900/50 border border-zk-700/30 mb-8">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span class="text-sm text-zk-300">Design sketch — not implemented</span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6">
+                <span class="text-white">From Single VM to</span><br>
+                <span class="gradient-text">Decentralized Network</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
+                A sketch of what turning the real <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="text-zk-300 underline">zkvm-isa / zkvm-stark</a> prover
+                into a distributed proving network could look like — a node anyone runs, an on-chain
+                task orchestrator, and a P2P mesh. The network below is a simulation; nothing here is live.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-16">
+                <div class="gradient-border px-6 py-4 text-center glow-card">
+                    <div class="text-3xl font-bold font-mono gradient-text metric-glow" id="heroNodes">0</div>
+                    <div class="text-xs text-gray-500 mt-1">Simulated Nodes</div>
+                </div>
+                <div class="gradient-border px-6 py-4 text-center glow-card">
+                    <div class="text-3xl font-bold font-mono gradient-text metric-glow" id="heroTasks">0</div>
+                    <div class="text-xs text-gray-500 mt-1">Simulated Tasks</div>
+                </div>
+                <div class="gradient-border px-6 py-4 text-center glow-card">
+                    <div class="text-3xl font-bold font-mono gradient-text metric-glow" id="heroProofs">0</div>
+                    <div class="text-xs text-gray-500 mt-1">Simulated Proofs</div>
+                </div>
+                <div class="gradient-border px-6 py-4 text-center glow-card">
+                    <div class="text-3xl font-bold font-mono gradient-text metric-glow" id="heroRewards">0</div>
+                    <div class="text-xs text-gray-500 mt-1">Simulated $ZKVM (no real token)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="overview" class="relative py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="fade-in text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4"><span class="gradient-text">The Sketch: Four Layers</span></h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">None of these four layers exist in the real repo today — this is the design conversation, not a status report.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="fade-in gradient-border p-8 glow-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center docker-pulse">
+                            <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M13 3H6v18h13V8l-6-5zM11 5h1v5H7V5h4zm-4 8h10v2H7v-2zm0 4h10v2H7v-2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">1. The Node</h3>
+                            <span class="text-xs text-blue-300">Self-Hosted Docker Container (unbuilt)</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">A Docker container running the VM, a P2P stack, and optional GPU acceleration — the plan for plug-and-play deployment. No Dockerfile for this exists in the repo yet.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 text-xs bg-blue-500/10 text-blue-300 rounded border border-blue-500/20">VM Runtime</span>
+                        <span class="px-2 py-1 text-xs bg-blue-500/10 text-blue-300 rounded border border-blue-500/20">P2P Stack</span>
+                        <span class="px-2 py-1 text-xs bg-blue-500/10 text-blue-300 rounded border border-blue-500/20">GPU Accel</span>
+                    </div>
+                </div>
+
+                <div class="fade-in gradient-border p-8 glow-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">2. The Orchestrator</h3>
+                            <span class="text-xs text-purple-300">Smart Contract (design sketch below)</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">Would route tasks to nodes and hold escrowed payment — the real repo's <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/contracts/src/ProofOrchestrator.sol" class="text-purple-300 underline">ProofOrchestrator.sol</a> already does task/reward lifecycle for a single attester; this sketch extends that idea to many competing provers.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 text-xs bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">Task Routing</span>
+                        <span class="px-2 py-1 text-xs bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">Payments</span>
+                        <span class="px-2 py-1 text-xs bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">Verification</span>
+                    </div>
+                </div>
+
+                <div class="fade-in gradient-border p-8 glow-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">3. The Network</h3>
+                            <span class="text-xs text-cyan-300">Libp2p Mesh (unbuilt)</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">A peer-to-peer mesh for task distribution and proof submission — no central server. Genuinely unbuilt; the section below simulates what it would look like, entirely in your browser.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 text-xs bg-cyan-500/10 text-cyan-300 rounded border border-cyan-500/20">Libp2p</span>
+                        <span class="px-2 py-1 text-xs bg-cyan-500/10 text-cyan-300 rounded border border-cyan-500/20">Task Dist</span>
+                        <span class="px-2 py-1 text-xs bg-cyan-500/10 text-cyan-300 rounded border border-cyan-500/20">Proof Submit</span>
+                    </div>
+                </div>
+
+                <div class="fade-in gradient-border p-8 glow-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">4. The Incentive Layer</h3>
+                            <span class="text-xs text-yellow-300">$ZKVM Token — no token exists</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">The sketch pays nodes for valid proofs and slashes for invalid ones. There is no deployed token, no tokenomics, and no treasury — this is a placeholder for "some incentive mechanism," not a financial product.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 text-xs bg-yellow-500/10 text-yellow-300 rounded border border-yellow-500/20">Rewards</span>
+                        <span class="px-2 py-1 text-xs bg-yellow-500/10 text-yellow-300 rounded border border-yellow-500/20">Slashing</span>
+                        <span class="px-2 py-1 text-xs bg-yellow-500/10 text-yellow-300 rounded border border-yellow-500/20">Staking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture" class="relative py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="fade-in text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4"><span class="gradient-text">System Architecture (Sketch)</span></h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">The intended end-to-end flow, if this were built — not a description of anything running today.</p>
+            </div>
+
+            <div class="fade-in gradient-border p-8 md:p-12">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="arch-layer w-full max-w-2xl p-5 bg-gradient-to-r from-green-500/5 to-emerald-500/5 border border-green-500/20 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center"><span class="text-green-300 text-sm">👩‍💻</span></div>
+                                <div><div class="text-sm font-semibold text-green-300">Developer</div><div class="text-xs text-gray-500">SDK → submit_task() (sketch, not built)</div></div>
+                            </div>
+                            <span class="text-xs text-gray-600 font-mono">zkvm_sdk.py</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <svg class="w-5 h-8 text-gray-600 flow-arrow" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        <span class="text-[10px] text-gray-600 font-mono">HTTP POST /submit</span>
+                    </div>
+                    <div class="arch-layer w-full max-w-2xl p-5 bg-gradient-to-r from-purple-500/5 to-violet-500/5 border border-purple-500/20 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><span class="text-purple-300 text-sm">⛓️</span></div>
+                                <div><div class="text-sm font-semibold text-purple-300">Multi-prover Orchestrator (sketch)</div><div class="text-xs text-gray-500">Extends the real ProofOrchestrator.sol pattern</div></div>
+                            </div>
+                            <span class="text-xs text-gray-600 font-mono">Solidity</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <svg class="w-5 h-8 text-gray-600 flow-arrow" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        <span class="text-[10px] text-gray-600 font-mono">claimTask() → P2P Broadcast</span>
+                    </div>
+                    <div class="arch-layer w-full max-w-2xl p-5 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-500/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><span class="text-cyan-300 text-sm">🌐</span></div>
+                                <div><div class="text-sm font-semibold text-cyan-300">Libp2p Mesh Network (unbuilt)</div><div class="text-xs text-gray-500">Peer-to-Peer Task Distribution</div></div>
+                            </div>
+                            <span class="text-xs text-gray-600 font-mono">TCP + QUIC</span>
+                        </div>
+                        <div class="flex gap-2 ml-11">
+                            <div class="px-2 py-1 text-[10px] bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/10">Node A (GPU)</div>
+                            <div class="px-2 py-1 text-[10px] bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/10">Node B (GPU)</div>
+                            <div class="px-2 py-1 text-[10px] bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/10">Node C (CPU)</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <svg class="w-5 h-8 text-gray-600 flow-arrow" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                        <span class="text-[10px] text-gray-600 font-mono">submitProof() → STARK Proof</span>
+                    </div>
+                    <div class="arch-layer w-full max-w-2xl p-5 bg-gradient-to-r from-yellow-500/5 to-amber-500/5 border border-yellow-500/20 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><span class="text-yellow-300 text-sm">✅</span></div>
+                                <div><div class="text-sm font-semibold text-yellow-300">On-Chain Verification</div><div class="text-xs text-gray-500">Would need a real cryptographic verifier — see docs/ONCHAIN_VERIFIER.md</div></div>
+                            </div>
+                            <span class="text-xs text-gray-600 font-mono">verifyProof()</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="network" class="relative py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="fade-in text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4"><span class="gradient-text">Live Network Simulation</span></h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">A client-side animation of how tasks might flow through such a network — no server, no real nodes, entirely generated in your browser right now.</p>
+            </div>
+
+            <div class="fade-in grid lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 gradient-border p-4">
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span class="text-sm text-gray-400">Simulated Topology</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs text-gray-600">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400"></span> Idle</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400"></span> Proving</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span> GPU</span>
+                        </div>
+                    </div>
+                    <canvas id="networkCanvas" width="800" height="450" class="w-full bg-[#080818] rounded-lg"></canvas>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="gradient-border p-5">
+                        <h4 class="text-xs font-semibold text-zk-300 mb-4 uppercase tracking-wider">Simulation Stats</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Simulated Nodes</span><span class="text-sm font-mono text-green-300" id="statNodes">3</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Pending Tasks</span><span class="text-sm font-mono text-yellow-300" id="statPending">0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Completed</span><span class="text-sm font-mono text-cyan-300" id="statCompleted">0</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Avg Simulated Prove Time</span><span class="text-sm font-mono text-purple-300" id="statAvgTime">0ms</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Simulated $ZKVM Paid</span><span class="text-sm font-mono text-yellow-300" id="statTotalPaid">0.00</span></div>
+                        </div>
+                    </div>
+
+                    <div class="gradient-border p-5">
+                        <h4 class="text-xs font-semibold text-zk-300 mb-4 uppercase tracking-wider">Node Status</h4>
+                        <div class="space-y-3" id="nodeStatusList">
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-green-500/5"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></span><span class="text-xs text-gray-300 font-mono">Node-A</span></div><div class="flex items-center gap-2"><span class="text-[10px] text-blue-300">GPU</span><span class="text-xs text-green-300">idle</span></div></div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-green-500/5"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></span><span class="text-xs text-gray-300 font-mono">Node-B</span></div><div class="flex items-center gap-2"><span class="text-[10px] text-blue-300">GPU</span><span class="text-xs text-green-300">idle</span></div></div>
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-green-500/5"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></span><span class="text-xs text-gray-300 font-mono">Node-C</span></div><div class="flex items-center gap-2"><span class="text-[10px] text-gray-400">CPU</span><span class="text-xs text-green-300">idle</span></div></div>
+                        </div>
+                    </div>
+
+                    <button onclick="submitSimTask()" class="w-full py-3 bg-zk-600 hover:bg-zk-500 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Submit Simulated Task
+                    </button>
+                </div>
+            </div>
+
+            <div class="fade-in gradient-border p-6 mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-xs font-semibold text-zk-300 uppercase tracking-wider">Simulated Task Log</h4>
+                    <button onclick="clearTaskLog()" class="text-xs text-gray-600 hover:text-gray-400 transition-colors">Clear</button>
+                </div>
+                <div id="taskLog" class="space-y-2 max-h-48 overflow-y-auto font-mono text-xs">
+                    <div class="text-gray-600 text-center py-4">Waiting for simulated tasks...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="code" class="relative py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="fade-in text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4"><span class="gradient-text">Design Sketch Code</span></h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">Illustrative sketches for each layer — none of this is wired into the real repo. The verifier stub below reverts rather than accepting anything, matching this project's actual UnimplementedStarkVerifier.sol pattern.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-1 mb-6 border-b border-white/5 pb-0">
+                <button class="tab-btn active px-4 py-3 text-sm text-gray-400 hover:text-white" data-tab="dockerfile">Dockerfile</button>
+                <button class="tab-btn px-4 py-3 text-sm text-gray-400 hover:text-white" data-tab="node">Node (Rust)</button>
+                <button class="tab-btn px-4 py-3 text-sm text-gray-400 hover:text-white" data-tab="contract">Orchestrator (Solidity)</button>
+                <button class="tab-btn px-4 py-3 text-sm text-gray-400 hover:text-white" data-tab="sdk">Python SDK</button>
+                <button class="tab-btn px-4 py-3 text-sm text-gray-400 hover:text-white" data-tab="run">Run Commands</button>
+            </div>
+
+            <div class="code-panel" data-tab="dockerfile">
+                <div class="code-block p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500/60"></div><div class="w-3 h-3 rounded-full bg-yellow-500/60"></div><div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                        <span class="text-xs text-gray-600 ml-2">Dockerfile (sketch)</span>
+                        <button onclick="copyCode('dockerfile')" class="ml-auto text-xs text-gray-600 hover:text-zk-300 transition-colors">Copy</button>
+                    </div>
+<pre class="text-gray-300"><code><span class="text-gray-600"># Build Stage — sketch, not present in the repo</span>
+<span class="text-purple-400">FROM</span> rust:1.80-slim <span class="text-purple-400">as</span> builder
+<span class="text-purple-400">RUN</span> apt-get update && apt-get install -y \
+    nvidia-cuda-toolkit build-essential git cmake \
+    && rm -rf /var/lib/apt/lists/*
+<span class="text-purple-400">WORKDIR</span> /app
+<span class="text-purple-400">COPY</span> crates/zkvm-isa ./crates/zkvm-isa
+<span class="text-purple-400">COPY</span> crates/zkvm-stark ./crates/zkvm-stark
+<span class="text-gray-600"># crates/zkvm-node does not exist yet -- this is what it would build</span>
+<span class="text-purple-400">COPY</span> crates/zkvm-node ./crates/zkvm-node
+<span class="text-purple-400">COPY</span> Cargo.toml Cargo.lock ./
+<span class="text-purple-400">RUN</span> cargo build --release --bin zkvm-node
+
+<span class="text-purple-400">FROM</span> debian:bookworm-slim
+<span class="text-purple-400">RUN</span> apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
+<span class="text-purple-400">COPY</span> --from=builder /app/target/release/zkvm-node /usr/local/bin/zkvm-node
+<span class="text-purple-400">ENTRYPOINT</span> [<span class="text-green-300">"zkvm-node"</span>]
+<span class="text-purple-400">CMD</span> [<span class="text-green-300">"--start"</span>]</code></pre>
+                </div>
+            </div>
+
+            <div class="code-panel hidden" data-tab="node">
+                <div class="code-block p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500/60"></div><div class="w-3 h-3 rounded-full bg-yellow-500/60"></div><div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                        <span class="text-xs text-gray-600 ml-2">crates/zkvm-node/src/main.rs — sketch, crate doesn't exist</span>
+                        <button onclick="copyCode('node')" class="ml-auto text-xs text-gray-600 hover:text-zk-300 transition-colors">Copy</button>
+                    </div>
+<pre class="text-gray-300"><code><span class="text-gray-600">//! Sketch of a DePIN node wrapping the real zkvm-isa/zkvm-stark prover.
+//! Not implemented -- libp2p is not a dependency of this repo today.</span>
+
+<span class="text-purple-400">use</span> clap::Parser;
+<span class="text-purple-400">use</span> libp2p::{identity, swarm::{NetworkBehaviour, SwarmEvent}, Multiaddr, PeerId, Swarm};
+<span class="text-purple-400">use</span> zkvm_isa::{execute, Program};
+<span class="text-purple-400">use</span> zkvm_stark::{prove_program, verify_program};
+
+<span class="text-purple-400">#[derive(Parser, Debug)]</span>
+<span class="text-purple-400">struct</span> <span class="text-cyan-300">Args</span> {
+    <span class="text-purple-400">#[arg(long)]</span> start: <span class="text-yellow-300">bool</span>,
+    <span class="text-purple-400">#[arg(long)]</span> gpu: <span class="text-yellow-300">bool</span>,
+    <span class="text-purple-400">#[arg(long, default_value = "testnet")]</span> network: String,
+}
+
+<span class="text-purple-400">#[tokio::main]</span>
+<span class="text-purple-400">async fn</span> <span class="text-cyan-300">main</span>() -> Result&lt;(), Box&lt;<span class="text-purple-400">dyn</span> std::error::Error&gt;&gt; {
+    <span class="text-purple-400">let</span> args = Args::parse();
+    <span class="text-purple-400">let</span> id_keys = identity::Keypair::generate_secp256k1();
+    <span class="text-purple-400">let</span> peer_id = PeerId::from(id_keys.public());
+
+    <span class="text-gray-600">// ... swarm setup would go here; omitted, this is a sketch ...</span>
+
+    <span class="text-purple-400">loop</span> {
+        <span class="text-gray-600">// on receiving a task: execute the real interpreter, then prove_program()</span>
+        <span class="text-gray-600">// exactly as zkvm-cli's `prove` command already does today.</span>
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="code-panel hidden" data-tab="contract">
+                <div class="code-block p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500/60"></div><div class="w-3 h-3 rounded-full bg-yellow-500/60"></div><div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                        <span class="text-xs text-gray-600 ml-2">MultiProverOrchestrator.sol — sketch, extends the real ProofOrchestrator.sol</span>
+                        <button onclick="copyCode('contract')" class="ml-auto text-xs text-gray-600 hover:text-zk-300 transition-colors">Copy</button>
+                    </div>
+<pre class="text-gray-300"><code><span class="text-gray-600">// SPDX-License-Identifier: MIT</span>
+<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-gray-600">/// Sketch only. The real, tested contract this would extend is
+/// contracts/src/ProofOrchestrator.sol in the actual repo -- it already
+/// does task/reward lifecycle for a single attester. This sketch is what
+/// "many competing provers claim one task" would need to add.</span>
+<span class="text-purple-400">contract</span> <span class="text-cyan-300">MultiProverOrchestrator</span> {
+    <span class="text-purple-400">struct</span> <span class="text-cyan-300">Task</span> {
+        bytes32 id;
+        string circuitHash;
+        bytes inputs;
+        address requester;
+        uint256 reward;
+        bool fulfilled;
+        bytes proof;
+        address prover;
+    }
+
+    <span class="text-purple-400">mapping</span>(bytes32 => Task) <span class="text-purple-400">public</span> tasks;
+    uint256 <span class="text-purple-400">public</span> taskCount;
+
+    <span class="text-purple-400">event</span> TaskSubmitted(bytes32 indexed taskId, address indexed requester);
+    <span class="text-purple-400">event</span> TaskClaimed(bytes32 indexed taskId, address indexed prover);
+    <span class="text-purple-400">event</span> TaskFulfilled(bytes32 indexed taskId, bool success);
+
+    <span class="text-purple-400">function</span> <span class="text-cyan-300">submitTask</span>(string memory _circuitHash, bytes memory _inputs)
+        <span class="text-purple-400">external payable returns</span> (bytes32)
+    {
+        taskCount++;
+        bytes32 taskId = keccak256(abi.encodePacked(block.timestamp, taskCount, msg.sender));
+        tasks[taskId] = Task({
+            id: taskId, circuitHash: _circuitHash, inputs: _inputs,
+            requester: msg.sender, reward: msg.value, fulfilled: false,
+            proof: <span class="text-purple-400">new</span> bytes(0), prover: address(0)
+        });
+        emit TaskSubmitted(taskId, msg.sender);
+        <span class="text-purple-400">return</span> taskId;
+    }
+
+    <span class="text-purple-400">function</span> <span class="text-cyan-300">claimTask</span>(bytes32 _taskId) <span class="text-purple-400">external</span> {
+        Task storage task = tasks[_taskId];
+        <span class="text-purple-400">require</span>(!task.fulfilled, <span class="text-green-300">"Task already fulfilled"</span>);
+        <span class="text-purple-400">require</span>(task.prover == address(0), <span class="text-green-300">"Task already claimed"</span>);
+        task.prover = msg.sender;
+        emit TaskClaimed(_taskId, msg.sender);
+    }
+
+    <span class="text-purple-400">function</span> <span class="text-cyan-300">submitProof</span>(bytes32 _taskId, bytes memory _proof) <span class="text-purple-400">external</span> {
+        Task storage task = tasks[_taskId];
+        <span class="text-purple-400">require</span>(msg.sender == task.prover, <span class="text-green-300">"Not the prover"</span>);
+        <span class="text-purple-400">require</span>(!task.fulfilled, <span class="text-green-300">"Task already fulfilled"</span>);
+
+        <span class="text-purple-400">bool</span> isValid = verifyProof(task.circuitHash, _proof, task.inputs);
+        <span class="text-purple-400">if</span> (isValid) {
+            task.fulfilled = true;
+            task.proof = _proof;
+            (<span class="text-purple-400">bool</span> sent, ) = payable(task.prover).call{value: task.reward}(<span class="text-green-300">""</span>);
+            <span class="text-purple-400">require</span>(sent, <span class="text-green-300">"Failed to send reward"</span>);
+            emit TaskFulfilled(_taskId, true);
+        } <span class="text-purple-400">else</span> {
+            <span class="text-purple-400">revert</span>(<span class="text-green-300">"Invalid proof"</span>);
+        }
+    }
+
+    <span class="text-gray-600">/// Honest placeholder: reverts rather than silently accepting every proof.
+    /// A real implementation needs to port FRI/Merkle/field-arithmetic
+    /// verification into Solidity -- see docs/ONCHAIN_VERIFIER.md in the
+    /// real repo for exactly what that requires and why it's a genuine
+    /// research-and-engineering undertaking, not a TODO.</span>
+    <span class="text-purple-400">function</span> <span class="text-cyan-300">verifyProof</span>(
+        string memory,
+        bytes memory,
+        bytes memory
+    ) <span class="text-purple-400">internal pure returns</span> (bool) {
+        <span class="text-purple-400">revert</span>(<span class="text-green-300">"verifyProof: not implemented -- see docs/ONCHAIN_VERIFIER.md"</span>);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="code-panel hidden" data-tab="sdk">
+                <div class="code-block p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500/60"></div><div class="w-3 h-3 rounded-full bg-yellow-500/60"></div><div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                        <span class="text-xs text-gray-600 ml-2">zkvm_sdk.py — sketch, does not exist in the repo</span>
+                        <button onclick="copyCode('sdk')" class="ml-auto text-xs text-gray-600 hover:text-zk-300 transition-colors">Copy</button>
+                    </div>
+<pre class="text-gray-300"><code><span class="text-purple-400">import</span> requests
+<span class="text-purple-400">import</span> time
+
+<span class="text-purple-400">class</span> <span class="text-cyan-300">ZkVMHost</span>:
+    <span class="text-purple-400">def</span> <span class="text-cyan-300">__init__</span>(self, orchestrator_url: str = <span class="text-green-300">"http://localhost:8080"</span>):
+        self.orchestrator_url = orchestrator_url
+
+    <span class="text-purple-400">def</span> <span class="text-cyan-300">submit_task</span>(self, circuit: str, inputs: dict, reward: float = <span class="text-yellow-300">0.01</span>) -> str:
+        payload = {<span class="text-green-300">"circuit"</span>: circuit, <span class="text-green-300">"inputs"</span>: inputs, <span class="text-green-300">"reward"</span>: reward}
+        response = requests.post(f<span class="text-green-300">"{self.orchestrator_url}/submit"</span>, json=payload)
+        <span class="text-purple-400">return</span> response.json()[<span class="text-green-300">"taskId"</span>]
+
+    <span class="text-purple-400">def</span> <span class="text-cyan-300">wait_for_proof</span>(self, task_id: str, timeout: int = <span class="text-yellow-300">60</span>) -> dict:
+        start = time.time()
+        <span class="text-purple-400">while</span> time.time() - start < timeout:
+            data = requests.get(f<span class="text-green-300">"{self.orchestrator_url}/status/{task_id}"</span>).json()
+            <span class="text-purple-400">if</span> data[<span class="text-green-300">"status"</span>] == <span class="text-green-300">"fulfilled"</span>:
+                <span class="text-purple-400">return</span> data
+            time.sleep(<span class="text-yellow-300">1</span>)
+        <span class="text-purple-400">raise</span> TimeoutError(<span class="text-green-300">"Proof generation timed out"</span>)</code></pre>
+                </div>
+            </div>
+
+            <div class="code-panel hidden" data-tab="run">
+                <div class="code-block p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500/60"></div><div class="w-3 h-3 rounded-full bg-yellow-500/60"></div><div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                        <span class="text-xs text-gray-600 ml-2">terminal — none of these commands exist yet</span>
+                        <button onclick="copyCode('run')" class="ml-auto text-xs text-gray-600 hover:text-zk-300 transition-colors">Copy</button>
+                    </div>
+<pre class="text-gray-300"><code><span class="text-gray-600"># What actually exists today: real anvil + Foundry, real CLI</span>
+<span class="text-cyan-300">$</span> anvil
+<span class="text-cyan-300">$</span> cd contracts && forge test
+<span class="text-cyan-300">$</span> cargo run --release -p zkvm-cli -- demo
+
+<span class="text-gray-600"># What this sketch imagines for a multi-node network (unbuilt):</span>
+<span class="text-cyan-300">$</span> docker run -p 3030:3030 zkvm/host-node:latest --start --gpu --network testnet
+<span class="text-cyan-300">$</span> docker run -p 3031:3030 zkvm/host-node:latest --start --network testnet</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pain-points" class="relative py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="fade-in text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4"><span class="gradient-text">Why This Might Be Worth Building</span></h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">The rationale for the sketch — an argument for building it, not evidence it's built.</p>
+            </div>
+
+            <div class="fade-in overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/5">
+                            <th class="text-left py-4 px-6 text-sm font-semibold text-zk-300">Pain Point</th>
+                            <th class="text-left py-4 px-6 text-sm font-semibold text-zk-300">Sketch's Proposed Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td class="py-5 px-6"><div class="flex items-center gap-2"><span class="text-red-400">💸</span><span class="text-sm text-white font-medium">High Cost</span></div></td>
+                            <td class="py-5 px-6 text-sm text-gray-400">Nodes use idle GPU/CPU power — a hypothesis about lower fees, not a measured one.</td>
+                        </tr>
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td class="py-5 px-6"><div class="flex items-center gap-2"><span class="text-red-400">🏢</span><span class="text-sm text-white font-medium">Centralization</span></div></td>
+                            <td class="py-5 px-6 text-sm text-gray-400">Today's real server is a single process on one machine — the sketch's answer is "anyone can run a node."</td>
+                        </tr>
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td class="py-5 px-6"><div class="flex items-center gap-2"><span class="text-red-400">🧠</span><span class="text-sm text-white font-medium">Complexity</span></div></td>
+                            <td class="py-5 px-6 text-sm text-gray-400">A Python/JS SDK could hide ZK details — sketch only, no SDK exists.</td>
+                        </tr>
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td class="py-5 px-6"><div class="flex items-center gap-2"><span class="text-red-400">🤝</span><span class="text-sm text-white font-medium">Trust</span></div></td>
+                            <td class="py-5 px-6 text-sm text-gray-400">Self-hosted nodes would remove the need to trust one server operator — the real repo's own <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/THREAT_MODEL.md" class="text-zk-300 underline">THREAT_MODEL.md</a> is more honest about today's single-attester trust gap than this sketch's optimism.</td>
+                        </tr>
+                        <tr class="hover:bg-white/[0.02] transition-colors">
+                            <td class="py-5 px-6"><div class="flex items-center gap-2"><span class="text-red-400">📈</span><span class="text-sm text-white font-medium">Scalability</span></div></td>
+                            <td class="py-5 px-6 text-sm text-gray-400">Parallel proving across many nodes — plausible in principle, untested in practice, no benchmark exists.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-white/5 py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-zk-400 to-cyan-400 flex items-center justify-center"><span class="text-white font-bold text-sm">zk</span></div>
+                    <span class="font-bold text-lg">zkVM<span class="text-zk-400">.host</span> <span class="text-xs text-gray-500">DePIN sketch</span></span>
+                </a>
+                <p class="text-sm text-gray-600 text-center">An unbuilt design sketch. The real, working zkVM is on GitHub.</p>
+                <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="text-xs text-gray-500 hover:text-gray-300 font-mono underline">github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.fade-in').forEach(el => {
+            gsap.fromTo(el, { opacity: 0, y: 30 }, {
+                opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+                scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+            });
+        });
+
+        function animateCounter(id, target) {
+            const el = document.getElementById(id);
+            gsap.fromTo(el, { textContent: 0 }, {
+                textContent: target, duration: 2, ease: 'power2.out', snap: { textContent: 1 },
+                scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+                onUpdate: function() { el.textContent = Math.round(parseFloat(el.textContent)); },
+                onComplete: () => { el.textContent = target; }
+            });
+        }
+        animateCounter('heroNodes', 3);
+        animateCounter('heroTasks', 0);
+        animateCounter('heroProofs', 0);
+        animateCounter('heroRewards', 0);
+
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const codePanels = document.querySelectorAll('.code-panel');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                codePanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tab !== tab));
+            });
+        });
+
+        function copyCode(tabId) {
+            const panel = document.querySelector(`.code-panel[data-tab="${tabId}"]`);
+            const code = panel.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = panel.querySelector('button');
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.classList.add('text-green-400');
+                setTimeout(() => { btn.textContent = orig; btn.classList.remove('text-green-400'); }, 2000);
+            });
+        }
+
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        let simNodes = [];
+        let simParticles = [];
+        let completedCount = 0, pendingCount = 0, totalPaid = 0, taskIdCounter = 0;
+        let proveTimes = [];
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            W = canvas.width = rect.width - 32;
+            H = canvas.height = 450;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function initNodes() {
+            simNodes = [
+                { id: 'Node-A', x: W * 0.25, y: H * 0.3, type: 'GPU', status: 'idle', radius: 28, proofs: 0 },
+                { id: 'Node-B', x: W * 0.75, y: H * 0.3, type: 'GPU', status: 'idle', radius: 28, proofs: 0 },
+                { id: 'Node-C', x: W * 0.5, y: H * 0.7, type: 'CPU', status: 'idle', radius: 22, proofs: 0 },
+            ];
+        }
+        initNodes();
+        const orchestrator = { x: W * 0.5, y: H * 0.45, radius: 18 };
+
+        function drawNetwork() {
+            ctx.clearRect(0, 0, W, H);
+            simNodes.forEach(node => {
+                ctx.beginPath(); ctx.moveTo(orchestrator.x, orchestrator.y); ctx.lineTo(node.x, node.y);
+                ctx.strokeStyle = node.status === 'proving' ? 'rgba(250, 204, 21, 0.2)' : 'rgba(124, 58, 237, 0.1)';
+                ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+            });
+            for (let i = 0; i < simNodes.length; i++) {
+                for (let j = i + 1; j < simNodes.length; j++) {
+                    ctx.beginPath(); ctx.moveTo(simNodes[i].x, simNodes[i].y); ctx.lineTo(simNodes[j].x, simNodes[j].y);
+                    ctx.strokeStyle = 'rgba(124, 58, 237, 0.05)'; ctx.lineWidth = 1; ctx.stroke();
+                }
+            }
+            simParticles.forEach((p, idx) => {
+                p.progress += p.speed;
+                if (p.progress >= 1) { simParticles.splice(idx, 1); if (p.callback) p.callback(); return; }
+                const x = p.sx + (p.ex - p.sx) * p.progress, y = p.sy + (p.ey - p.sy) * p.progress;
+                ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.fill();
+                ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = p.color.replace(')', ', 0.2)').replace('rgb', 'rgba'); ctx.fill();
+            });
+            ctx.beginPath(); ctx.arc(orchestrator.x, orchestrator.y, orchestrator.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(124, 58, 237, 0.15)'; ctx.fill();
+            ctx.strokeStyle = 'rgba(124, 58, 237, 0.4)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = '#a78bfa'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+            ctx.fillText('⛓️', orchestrator.x, orchestrator.y + 4);
+
+            simNodes.forEach(node => {
+                if (node.status === 'proving') {
+                    ctx.beginPath(); ctx.arc(node.x, node.y, node.radius + 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
+                }
+                ctx.beginPath(); ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius);
+                if (node.status === 'proving') { grad.addColorStop(0, 'rgba(250, 204, 21, 0.2)'); grad.addColorStop(1, 'rgba(250, 204, 21, 0.05)'); }
+                else { grad.addColorStop(0, 'rgba(52, 211, 153, 0.15)'); grad.addColorStop(1, 'rgba(52, 211, 153, 0.03)'); }
+                ctx.fillStyle = grad; ctx.fill();
+                ctx.strokeStyle = node.status === 'proving' ? 'rgba(250, 204, 21, 0.5)' : 'rgba(52, 211, 153, 0.3)';
+                ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 10px JetBrains Mono'; ctx.textAlign = 'center';
+                ctx.fillText(node.id, node.x, node.y - 2);
+                ctx.fillStyle = node.type === 'GPU' ? '#60a5fa' : '#9ca3af'; ctx.font = '9px JetBrains Mono';
+                ctx.fillText(node.type, node.x, node.y + 10);
+                const statusColor = node.status === 'proving' ? '#fbbf24' : '#34d399';
+                ctx.fillStyle = statusColor; ctx.font = '8px JetBrains Mono';
+                ctx.fillText(node.status, node.x, node.y + 22);
+                if (node.proofs > 0) {
+                    ctx.fillStyle = 'rgba(167, 139, 250, 0.6)'; ctx.font = '8px JetBrains Mono';
+                    ctx.fillText(`${node.proofs} proofs`, node.x, node.y + 33);
+                }
+            });
+            requestAnimationFrame(drawNetwork);
+        }
+        drawNetwork();
+
+        function submitSimTask() {
+            taskIdCounter++;
+            const taskId = `0x${taskIdCounter.toString(16).padStart(4, '0')}`;
+            pendingCount++; updateStats();
+            addLogEntry(`📝 Simulated task ${taskId} submitted → Orchestrator`, 'text-purple-300');
+
+            const available = simNodes.filter(n => n.status === 'idle');
+            if (available.length === 0) {
+                addLogEntry(`⏳ Task ${taskId} queued — all simulated nodes busy`, 'text-yellow-300');
+                setTimeout(() => submitSimTask(), 3000);
+                return;
+            }
+            const bestNode = available.sort((a, b) => (a.type === 'GPU' && b.type !== 'GPU') ? -1 : (b.type === 'GPU' && a.type !== 'GPU') ? 1 : 0)[0];
+
+            setTimeout(() => {
+                addLogEntry(`📡 Task ${taskId} claimed by ${bestNode.id}`, 'text-cyan-300');
+                bestNode.status = 'proving'; updateNodeStatusList();
+                simParticles.push({
+                    sx: orchestrator.x, sy: orchestrator.y, ex: bestNode.x, ey: bestNode.y,
+                    progress: 0, speed: 0.02, color: 'rgb(167, 139, 250)',
+                    callback: () => {
+                        addLogEntry(`⚡ ${bestNode.id} generating simulated STARK proof...`, 'text-yellow-300');
+                        const proveTime = bestNode.type === 'GPU' ? 800 + Math.random() * 1200 : 2000 + Math.random() * 3000;
+                        setTimeout(() => {
+                            bestNode.proofs++; bestNode.status = 'idle';
+                            pendingCount = Math.max(0, pendingCount - 1); completedCount++;
+                            proveTimes.push(proveTime);
+                            const reward = (bestNode.type === 'GPU' ? 0.015 : 0.008);
+                            totalPaid += reward;
+                            addLogEntry(`✅ Task ${taskId} proven by ${bestNode.id} (${Math.round(proveTime)}ms, simulated)`, 'text-green-300');
+                            simParticles.push({
+                                sx: bestNode.x, sy: bestNode.y, ex: orchestrator.x, ey: orchestrator.y,
+                                progress: 0, speed: 0.025, color: 'rgb(52, 211, 153)',
+                                callback: () => {
+                                    addLogEntry(`🔍 Simulated verification → ${reward.toFixed(3)} $ZKVM (not real) credited to ${bestNode.id}`, 'text-yellow-300');
+                                    updateStats(); updateNodeStatusList();
+                                }
+                            });
+                            updateNodeStatusList();
+                        }, proveTime);
+                    }
+                });
+            }, 500);
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('statNodes').textContent = simNodes.length;
+            document.getElementById('statPending').textContent = pendingCount;
+            document.getElementById('statCompleted').textContent = completedCount;
+            const avgTime = proveTimes.length > 0 ? Math.round(proveTimes.reduce((a, b) => a + b, 0) / proveTimes.length) : 0;
+            document.getElementById('statAvgTime').textContent = avgTime + 'ms';
+            document.getElementById('statTotalPaid').textContent = totalPaid.toFixed(3);
+        }
+
+        function updateNodeStatusList() {
+            const list = document.getElementById('nodeStatusList');
+            list.innerHTML = simNodes.map(node => {
+                const statusClass = node.status === 'proving' ? 'status-busy' : 'status-online';
+                const bgColor = node.status === 'proving' ? 'bg-yellow-500/5' : 'bg-green-500/5';
+                const typeColor = node.type === 'GPU' ? 'text-blue-300' : 'text-gray-400';
+                return `<div class="flex items-center justify-between p-2 rounded-lg ${bgColor}">
+                    <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full ${node.status === 'proving' ? 'bg-yellow-400' : 'bg-green-400'} ${node.status === 'idle' ? 'pulse-dot' : ''}"></span><span class="text-xs text-gray-300 font-mono">${node.id}</span></div>
+                    <div class="flex items-center gap-2"><span class="text-[10px] ${typeColor}">${node.type}</span><span class="text-xs ${statusClass}">${node.status}</span></div>
+                </div>`;
+            }).join('');
+        }
+
+        function addLogEntry(msg, colorClass) {
+            const log = document.getElementById('taskLog');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const entry = document.createElement('div');
+            entry.className = `task-item flex items-start gap-3 py-1.5 px-2 rounded ${colorClass}`;
+            entry.innerHTML = `<span class="text-gray-600 flex-shrink-0">${time}</span><span>${msg}</span>`;
+            if (log.querySelector('.text-center')) log.innerHTML = '';
+            log.prepend(entry);
+            while (log.children.length > 50) log.removeChild(log.lastChild);
+        }
+
+        function clearTaskLog() {
+            document.getElementById('taskLog').innerHTML = '<div class="text-gray-600 text-center py-4">Waiting for simulated tasks...</div>';
+        }
+
+        let autoInterval;
+        function startAutoTasks() {
+            autoInterval = setInterval(() => { if (pendingCount < 3) submitSimTask(); }, 4000 + Math.random() * 3000);
+        }
+        setTimeout(() => { submitSimTask(); setTimeout(() => startAutoTasks(), 2000); }, 2000);
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

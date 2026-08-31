@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zkvm.host — Build Dashboard</title>
+    <meta name="description" content="Real, verified status of the zkVM implementation: test counts, proof size, verify time, and the actual next-slice roadmap — every number checked against the repo, not estimated.">
+    <link rel="canonical" href="https://www.zkvm.host/dashboard/">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        surface: { 50: '#f8f8fc', 100: '#eeeef5', 800: '#12121a', 900: '#0a0a10', 950: '#06060a' },
+                        accent: { DEFAULT: '#a78bfa', light: '#c4b5fd', dark: '#7c3aed' },
+                        success: '#34d399',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #06060a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: #0d0d14;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            border-color: rgba(167, 139, 250, 0.15);
+            box-shadow: 0 8px 40px rgba(167, 139, 250, 0.06);
+        }
+        .nav-link { position: relative; transition: color 0.3s; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 0; height: 1.5px; background: #a78bfa; transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .code-block {
+            background: #0c0c12;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+        .tab-btn.active { color: #a78bfa; border-bottom-color: #7c3aed; }
+        .fade-in { opacity: 0; transform: translateY(24px); }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(167, 139, 250, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(167, 139, 250, 0.015) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .timeline-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #a78bfa; position: relative; z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .timeline-dot.active { box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.2); transform: scale(1.3); }
+        .timeline-line {
+            position: absolute; left: 5px; top: 12px; bottom: 0; width: 2px;
+            background: linear-gradient(to bottom, rgba(167,139,250,0.3), transparent);
+        }
+        .feature-card { transition: all 0.3s ease; cursor: pointer; }
+        .feature-card:hover { transform: translateY(-2px); border-color: rgba(167, 139, 250, 0.2); }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 500;
+        }
+        .constraint-card { border-left: 3px solid; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.15); border-radius: 3px; }
+        .glow-orb {
+            position: absolute; border-radius: 50%; filter: blur(100px);
+            pointer-events: none; opacity: 0.08;
+        }
+        .verified-tag {
+            font-size: 10px; color: #34d399; font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="grid-bg">
+
+<nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#06060a]/70 border-b border-white/[0.04]">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-md bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
+                <span class="text-white font-bold text-[10px] tracking-tight">zk</span>
+            </div>
+            <span class="font-semibold text-[15px] tracking-tight">zkvm<span class="text-accent">.host</span></span>
+            <span class="text-[10px] text-gray-600 ml-2 hidden sm:inline">Build Dashboard</span>
+        </div>
+        <div class="hidden md:flex items-center gap-7">
+            <a href="/" class="nav-link text-[13px] text-gray-500 hover:text-white">Home</a>
+            <a href="#status" class="nav-link text-[13px] text-gray-500 hover:text-white">Status</a>
+            <a href="#roadmap" class="nav-link text-[13px] text-gray-500 hover:text-white">Roadmap</a>
+            <a href="#features" class="nav-link text-[13px] text-gray-500 hover:text-white">Ideas backlog</a>
+            <a href="#constraints" class="nav-link text-[13px] text-gray-500 hover:text-white">Constraints</a>
+            <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="nav-link text-[13px] text-gray-500 hover:text-white">GitHub</a>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="status-badge bg-success/10 text-success border border-success/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                CI passing
+            </span>
+        </div>
+    </div>
+</nav>
+
+<section class="relative min-h-[60vh] flex items-center justify-center overflow-hidden pt-20 pb-12">
+    <div class="glow-orb w-[600px] h-[600px] bg-accent top-0 right-0"></div>
+    <div class="glow-orb w-[400px] h-[400px] bg-cyan-400 bottom-0 left-0"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] mb-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+            <span class="text-[12px] text-gray-400">Every number on this page is measured against the live repo</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
+            <span class="text-white">The</span> <span class="gradient-text">Build Dashboard</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+            A real STARK-verifiable virtual machine: Rust + Winterfell, an HTTP + MCP proving service, and Foundry contracts with a documented on-chain trust model.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4 mb-4">
+            <div class="card px-6 py-4 text-center">
+                <div class="text-3xl font-bold font-mono gradient-text">37</div>
+                <div class="text-xs text-gray-500 mt-1">Rust Tests</div>
+            </div>
+            <div class="card px-6 py-4 text-center">
+                <div class="text-3xl font-bold font-mono gradient-text">8</div>
+                <div class="text-xs text-gray-500 mt-1">Solidity Tests</div>
+            </div>
+            <div class="card px-6 py-4 text-center">
+                <div class="text-3xl font-bold font-mono gradient-text">~11 KB</div>
+                <div class="text-xs text-gray-500 mt-1">Proof Size</div>
+            </div>
+            <div class="card px-6 py-4 text-center">
+                <div class="text-3xl font-bold font-mono gradient-text">~5.5ms</div>
+                <div class="text-xs text-gray-500 mt-1">Verify Time</div>
+            </div>
+        </div>
+        <p class="verified-tag mb-8">✓ measured 2026-08-31 · cargo test --release --workspace + forge test · examples/fibonacci_like.zkasm, 10-run avg, release build</p>
+
+        <div class="code-block max-w-2xl mx-auto text-left p-4">
+            <div class="text-gray-500 text-[11px] mb-2"># One-line pitch</div>
+            <div class="text-accent text-[13px] leading-relaxed">
+                "A small, real zkVM: a custom ISA with branching and registers, a from-scratch AIR,<br>
+                a STARK prover/verifier over Winterfell, an HTTP + MCP proving service, and<br>
+                on-chain attestation. Every gap is named in the docs, not hidden."
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="status" class="relative py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="fade-in text-center mb-12">
+            <span class="text-[11px] font-mono text-accent uppercase tracking-widest">Current State — Aug 31, 2026</span>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4 text-white">Built and <span class="gradient-text">Verified</span></h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <span class="text-accent text-xs font-bold">ISA</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">zkvm-isa</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">.zkasm ISA: ADD/SUB/MUL, JZ/JNZ branching (forward-only), a 4-register file (LOAD/STORE), label-based assembly</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ 16 tests passing</span>
+            </div>
+
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                        <span class="text-cyan-400 text-xs font-bold">STARK</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">zkvm-stark</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">STARK prover/verifier over Winterfell, no-secret-witness AIR — sound without a lookup/permutation gadget</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ 8 tests passing</span>
+            </div>
+
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                        <span class="text-green-400 text-xs font-bold">API</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">zkvm-host-server</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">axum 0.8 HTTP server, ProverBackend trait + ProverRouter, hardened with body/timeout/concurrency limits</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ 13 tests passing</span>
+            </div>
+
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <span class="text-purple-400 text-xs font-bold">CLI</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">zkvm-cli</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">run, prove, verify, deploy, demo subcommands</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ Complete</span>
+            </div>
+
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                        <span class="text-yellow-400 text-xs font-bold">MCP</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">MCP Server</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">rmcp 3.1, port 4478, prove + verify tools, verified against a real client handshake</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ Complete</span>
+            </div>
+
+            <div class="fade-in card p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                        <span class="text-rose-400 text-xs font-bold">⛓️</span>
+                    </div>
+                    <h3 class="text-[14px] font-semibold text-white">Smart Contracts</h3>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-2">Foundry: ProofOrchestrator, AttestedVerifier, UnimplementedStarkVerifier, IProofVerifier</p>
+                <span class="status-badge bg-success/10 text-success text-[10px]">✓ 8 tests passing</span>
+            </div>
+        </div>
+
+        <div class="fade-in mt-8 card p-6 border-l-2 border-l-success/30">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-[15px] font-semibold text-white">End-to-End Scripts</h3>
+                <span class="status-badge bg-success/10 text-success text-[10px]">Both Pass</span>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4 text-[12px]">
+                <div>
+                    <code class="text-accent font-mono">scripts/onchain_demo.sh</code>
+                    <p class="text-gray-500 mt-1">Full loop: task → prove → verify → attest → pay (anvil)</p>
+                </div>
+                <div>
+                    <code class="text-accent font-mono">scripts/mcp_demo.sh</code>
+                    <p class="text-gray-500 mt-1">Real MCP transcript capture</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="fade-in mt-4 card p-6 border-l-2 border-l-danger/30">
+            <h3 class="text-[15px] font-semibold text-white mb-2">What's explicitly NOT here yet</h3>
+            <p class="text-[12px] text-gray-500 leading-relaxed">Loops, addressable memory, RISC-V compatibility, formal verification, fuzzing, external audits, a second real proving backend, trustless on-chain verification (today's <code class="text-accent">AttestedVerifier</code> is a documented trust bridge, not a cryptographic verifier). See <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/docs/ROADMAP.md" class="text-accent underline">docs/ROADMAP.md</a> for the full list.</p>
+        </div>
+    </div>
+</section>
+
+<section id="roadmap" class="relative py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="fade-in text-center mb-12">
+            <span class="text-[11px] font-mono text-accent uppercase tracking-widest">Suggested Next Slice</span>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4 text-white">In order of <span class="gradient-text">validation value</span></h2>
+            <p class="text-gray-500 text-[14px] max-w-xl mx-auto mt-3">This is the actual order in docs/ROADMAP.md — not a fixed calendar. Each step only starts once the previous one is solid.</p>
+        </div>
+
+        <div class="fade-in max-w-3xl mx-auto space-y-0">
+            <div class="relative pl-12 pb-10">
+                <div class="timeline-line"></div>
+                <div class="absolute left-0 top-0 timeline-dot active"></div>
+                <div class="card p-5">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-[11px] font-mono text-accent">Next</span>
+                        <span class="status-badge bg-warning/10 text-warning text-[10px]">Not started</span>
+                    </div>
+                    <h3 class="text-[15px] font-semibold text-white mb-2">Loops</h3>
+                    <ul class="space-y-1.5 text-[12px] text-gray-500">
+                        <li class="flex items-start gap-2"><span class="text-accent mt-0.5">→</span> A dynamically-sized execution trace (bounded, padded/truncated by actual run length) so JZ/JNZ can jump backward</li>
+                        <li class="flex items-start gap-2"><span class="text-accent mt-0.5">→</span> The "verifier re-executes and asserts everything" trick still works — the verifier can just run the loop itself</li>
+                        <li class="flex items-start gap-2"><span class="text-accent mt-0.5">→</span> Real design needed for trace-length selection and the resulting proof-size variability</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="relative pl-12 pb-10">
+                <div class="timeline-line"></div>
+                <div class="absolute left-0 top-0 timeline-dot"></div>
+                <div class="card p-5">
+                    <span class="text-[11px] font-mono text-gray-600">After loops</span>
+                    <h3 class="text-[15px] font-semibold text-white mt-2 mb-2">Addressable memory</h3>
+                    <ul class="space-y-1.5 text-[12px] text-gray-500">
+                        <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">→</span> Dynamic addresses (e.g. <code class="text-gray-400">LD r0, [r1]</code>), distinct from today's 4 static register slots</li>
+                        <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">→</span> Open question: does the no-secret-witness trick still hold, or is a real lookup/permutation argument needed?</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="relative pl-12">
+                <div class="absolute left-0 top-0 timeline-dot"></div>
+                <div class="card p-5">
+                    <span class="text-[11px] font-mono text-gray-600">Only after 1–2 are solid</span>
+                    <h3 class="text-[15px] font-semibold text-white mt-2 mb-2">RV32I compatibility</h3>
+                    <ul class="space-y-1.5 text-[12px] text-gray-500">
+                        <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">→</span> Considered explicitly out of order — not worth attempting before loops and memory are real</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="relative py-24 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="fade-in text-center mb-12">
+            <span class="text-[11px] font-mono text-accent uppercase tracking-widest">Ideas Backlog — Not Built</span>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4 text-white">100 Ideas. <span class="gradient-text">Zero Shipped.</span></h2>
+            <p class="text-gray-500 text-[15px] max-w-2xl mx-auto">A brainstorm of what a full platform could eventually include — none of this exists yet. Listed here so it doesn't get confused with the Status section above.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-1 mb-8 border-b border-white/[0.04]">
+            <button class="tab-btn active px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="dev">A. Dev Environment</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="proving">B. Proving Pipeline</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="verification">C. Verification</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="ci">D. CI/CD</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="chain">E. Multi-Chain</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="keys">F. Key Mgmt</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="analytics">G. Analytics</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="collab">H. Collab</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="enterprise">I. Enterprise</button>
+            <button class="tab-btn px-4 py-3 text-[12px] text-gray-400 hover:text-white" data-tab="dx">J. DX & Ecosystem</button>
+        </div>
+
+        <div id="featureGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </div>
+</section>
+
+<section id="constraints" class="relative py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="fade-in text-center mb-12">
+            <span class="text-[11px] font-mono text-danger uppercase tracking-widest">Non-Negotiable</span>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4 text-white">Quality <span class="gradient-text">Constraints</span></h2>
+            <p class="text-gray-500 text-[14px] max-w-xl mx-auto mt-3">The actual working discipline for this repo — see <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/blob/main/CONTRIBUTING.md" class="text-accent underline">CONTRIBUTING.md</a>.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="fade-in card constraint-card p-5" style="border-left-color: #f87171">
+                <h3 class="text-[14px] font-semibold text-white mb-2">1. Verify Every External API</h3>
+                <p class="text-[12px] text-gray-500 leading-relaxed">Never assume. Read the crate source at the exact version tag, or run a minimal repro before writing production code.</p>
+            </div>
+
+            <div class="fade-in card constraint-card p-5" style="border-left-color: #fbbf24">
+                <h3 class="text-[14px] font-semibold text-white mb-2">2. No Stubs or Mocks</h3>
+                <p class="text-[12px] text-gray-500 leading-relaxed">No todo!(), no return true stubs, no component named after a real product it doesn't implement. If something isn't built, it's in ROADMAP.md.</p>
+            </div>
+
+            <div class="fade-in card constraint-card p-5" style="border-left-color: #34d399">
+                <h3 class="text-[14px] font-semibold text-white mb-2">3. Honest Scope Docs</h3>
+                <p class="text-[12px] text-gray-500 leading-relaxed">docs/ROADMAP.md and docs/HOST_SERVICE.md list what's real and what's not. Every gap is named with what it actually takes to close. No "coming soon."</p>
+            </div>
+
+            <div class="fade-in card constraint-card p-5" style="border-left-color: #06b6d4">
+                <h3 class="text-[14px] font-semibold text-white mb-2">4. Test Under --release</h3>
+                <p class="text-[12px] text-gray-500 leading-relaxed">Winterfell's debug-mode degree check is over-strict for data-dependent constraint degrees (confirmed: not a soundness bug — see the code comment in zkvm-stark/src/lib.rs).</p>
+            </div>
+
+            <div class="fade-in card constraint-card p-5 md:col-span-2" style="border-left-color: #a78bfa">
+                <h3 class="text-[14px] font-semibold text-white mb-2">5. No Fabricated Specificity</h3>
+                <p class="text-[12px] text-gray-500 leading-relaxed">If you cite a paper, a date, a benchmark, or a project name, it must be verifiable. Unverifiable numbers are not acceptable — see the "measured" tag on every metric on this page.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="relative py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="fade-in text-center mb-12">
+            <span class="text-[11px] font-mono text-gray-600 uppercase tracking-widest">Scope Control</span>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4 text-white">What <span class="text-danger">NOT</span> to Build (Yet)</h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">Billing / payments</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">No users, no auth persistence</p>
+            </div>
+
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">Edge / WASM SDK</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">No WASM backend exists</p>
+            </div>
+
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">SP1 integration</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">Investigated and declined — ISA mismatch, 518 deps for a hello-world. See docs/HOST_SERVICE.md.</p>
+            </div>
+
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">A token / tokenomics</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">No token contract exists</p>
+            </div>
+
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">Compliance / regulatory product</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">No legal team, no customers</p>
+            </div>
+
+            <div class="fade-in card p-5 opacity-60">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-danger text-sm">✗</span>
+                    <h3 class="text-[13px] font-semibold text-gray-400">Decentralized prover marketplace</h3>
+                </div>
+                <p class="text-[11px] text-gray-600">No prover supply to route to — see /depin for the design sketch, explicitly unbuilt</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="border-t border-white/[0.04] py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
+                <span class="text-white font-bold text-[8px]">zk</span>
+            </div>
+            <span class="text-[13px] text-gray-600">zkvm.host — Build Dashboard</span>
+        </div>
+        <div class="flex items-center gap-6 text-[12px] text-gray-600">
+            <a href="/" class="hover:text-gray-400 transition-colors">Home</a>
+            <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute" class="hover:text-gray-400 transition-colors">GitHub</a>
+            <a href="https://github.com/CodesbyFebin/zkvm-rust-stark-verifiable-compute/tree/main/funding" class="hover:text-gray-400 transition-colors">Funding</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+const features = {
+    dev: [
+        { num: 1, title: "In-browser .zkasm editor", pain: "No one has a good ZK editor" },
+        { num: 2, title: "Live trace preview", pain: "Debugging ZK is run-grep" },
+        { num: 3, title: "Inline constraint visualization", pain: "The AIR is invisible today" },
+        { num: 4, title: "One-click explain this proof", pain: "Non-crypto devs can't read STARK" },
+        { num: 5, title: "Version-controlled program editor", pain: "No semantic diff for .zkasm" },
+        { num: 6, title: "Template gallery", pain: "Every dev starts from scratch" },
+        { num: 7, title: "Program dependency manager", pain: "No package registry for ZK" },
+        { num: 8, title: "Sandboxed execution", pain: "Does this even run?" },
+        { num: 9, title: "Multi-cursor collaborative editing", pain: "ZK teams share repos" },
+        { num: 10, title: "Keyboard-driven workflow", pain: "Power users live in terminal" },
+    ],
+    proving: [
+        { num: 11, title: "Cost estimator", pain: "Waste GPU time on large programs" },
+        { num: 12, title: "Progress bar with phase breakdown", pain: "30s black box" },
+        { num: 13, title: "Proof size prediction", pain: "Don't know if proof fits on-chain" },
+        { num: 14, title: "Batch proving", pain: "Testing requires scripts" },
+        { num: 15, title: "Proving key cache UI", pain: "PK caching is invisible" },
+        { num: 16, title: "Proof compression toggle", pain: "Which format for which context?" },
+        { num: 17, title: "Proof diffing", pain: "What changed between v1 and v2?" },
+        { num: 18, title: "Prover health dashboard", pain: "No observability" },
+        { num: 19, title: "Proof reproducibility lock", pain: "Works on my machine" },
+        { num: 20, title: "Offline proving mode", pain: "Air-gapped environments" },
+    ],
+    verification: [
+        { num: 21, title: "One-click verify", pain: "Separate CLI step" },
+        { num: 22, title: "Proof provenance chain", pain: "No audit trail" },
+        { num: 23, title: "Tamper detection dashboard", pain: "Program mismatch is invisible without reading logs" },
+        { num: 24, title: "Multi-verifier", pain: "Single point of failure" },
+        { num: 25, title: "On-chain proof registry", pain: "Proofs live in local files" },
+        { num: 26, title: "Proof expiry & revocation", pain: "Can't un-prove" },
+        { num: 27, title: "Trust score", pain: "Attestation needs reputation" },
+        { num: 28, title: "Proof composition UI", pain: "Recursive composition is research" },
+        { num: 29, title: "Verifier contract deployment wizard", pain: "Manual copy-paste today" },
+        { num: 30, title: "Proof as badge", pain: "Visual verification element" },
+    ],
+    ci: [
+        { num: 31, title: "Built-in CI", pain: "Requires GitHub Actions today" },
+        { num: 32, title: "PR proof gate as a product", pain: "This repo's own CI does it, but bespoke" },
+        { num: 33, title: "Scheduled re-proving", pain: "Verifier changes invalidate proofs" },
+        { num: 34, title: "Deployment pipeline", pain: "No deployment workflow" },
+        { num: 35, title: "Webhook on proof events", pain: "Integrate with Slack" },
+        { num: 36, title: "Regression suite", pain: "Performance regression invisible" },
+        { num: 37, title: "Canary proving", pain: "Upgrading prover is scary" },
+        { num: 38, title: "Changelog auto-generation", pain: "No one documents changes" },
+        { num: 39, title: "Audit log", pain: "Compliance requirement" },
+        { num: 40, title: "One-click rollback", pain: "Manual process today" },
+    ],
+    chain: [
+        { num: 41, title: "Chain selector", pain: "Spreadsheet of addresses" },
+        { num: 42, title: "Cross-chain proof relay", pain: "Manual bridge" },
+        { num: 43, title: "Chain-agnostic proof format", pain: "N formats for N chains" },
+        { num: 44, title: "Gas cost comparison", pain: "No cost comparison" },
+        { num: 45, title: "Multi-chain dashboard", pain: "No visibility" },
+        { num: 46, title: "Bridge-agnostic design", pain: "Which bridge to trust?" },
+        { num: 47, title: "Solana support", pain: "No clean path today" },
+        { num: 48, title: "StarkNet-native path", pain: "Potentially cheaper for STARK" },
+        { num: 49, title: "L2-specific optimizations", pain: "Wastes gas without them" },
+        { num: 50, title: "Chain abstraction API", pain: "Just verify anywhere" },
+    ],
+    keys: [
+        { num: 51, title: "In-platform key vault", pain: "Keys in .env files" },
+        { num: 52, title: "Key rotation with proof continuity", pain: "Rotation invalidates proofs today" },
+        { num: 53, title: "Multi-sig attester", pain: "Single attester key is a documented trust gap" },
+        { num: 54, title: "Hardware key integration", pain: "Key must never leave HSM" },
+        { num: 55, title: "API key management", pain: "No auth on the HTTP surface today" },
+        { num: 56, title: "IP allowlisting", pain: "Basic security missing today" },
+        { num: 57, title: "Rate limiting with visual feedback", pain: "Server now rejects, but no UI for it" },
+        { num: 58, title: "Audit log for key access", pain: "Compliance requirement" },
+        { num: 59, title: "Key compromise protocol", pain: "No documented recovery process" },
+        { num: 60, title: "Zero-knowledge key sharing", pain: "Don't trust teammate with key" },
+    ],
+    analytics: [
+        { num: 61, title: "Proof timeline", pain: "No visibility into slowness" },
+        { num: 62, title: "Instruction-level profiling", pain: "No profiler exists" },
+        { num: 63, title: "Cost breakdown", pain: "No cost visibility" },
+        { num: 64, title: "Proof size trend", pain: "Silent bloat" },
+        { num: 65, title: "Uptime SLA dashboard", pain: "No SLA exists" },
+        { num: 66, title: "Anomaly detection", pain: "No alerting" },
+        { num: 67, title: "Team activity feed", pain: "No team concept exists" },
+        { num: 68, title: "Benchmark comparison", pain: "No baseline published yet" },
+        { num: 69, title: "Proof reuse analytics", pain: "No usage data collected" },
+        { num: 70, title: "Export to Grafana/Datadog", pain: "No metrics exported today" },
+    ],
+    collab: [
+        { num: 71, title: "Project workspaces", pain: "No unified project concept" },
+        { num: 72, title: "Team roles", pain: "No access control" },
+        { num: 73, title: "Shared proof library", pain: "Proofs scattered in local files" },
+        { num: 74, title: "Community program registry", pain: "No npm-equivalent for .zkasm" },
+        { num: 75, title: "Proof sharing UI", pain: "Manual file + instructions today" },
+        { num: 76, title: "Embedded verifier widget", pain: "No embeddable component yet" },
+        { num: 77, title: "Public proof leaderboard", pain: "No community layer" },
+        { num: 78, title: "Bug report → proof of fix", pain: "No tooling connects the two" },
+        { num: 79, title: "Docs with live examples", pain: "Docs are static markdown today" },
+        { num: 80, title: "Office hours / expert review", pain: "No structured support channel" },
+    ],
+    enterprise: [
+        { num: 81, title: "SOC 2 / ISO 27001 report", pain: "None exists — no external audit yet" },
+        { num: 82, title: "Data residency controls", pain: "No infra to control residency" },
+        { num: 83, title: "Private mode", pain: "No private-deployment option" },
+        { num: 84, title: "Compliance proof generator", pain: "No regulator-facing tooling" },
+        { num: 85, title: "SSO / SAML", pain: "No auth system at all today" },
+        { num: 86, title: "Dedicated prover pool", pain: "No multi-tenant infra" },
+        { num: 87, title: "Custom SLA", pain: "No SLA offered" },
+        { num: 88, title: "On-prem / VPC deployment", pain: "No packaged deployment story" },
+        { num: 89, title: "Legal hold process", pain: "Not designed" },
+        { num: 90, title: "Vendor risk assessment materials", pain: "None prepared" },
+    ],
+    dx: [
+        { num: 91, title: "In-app AI assistant", pain: "No in-app help today" },
+        { num: 92, title: "Error message → fix suggestion", pain: "CLI errors are plain text today" },
+        { num: 93, title: "Program linter", pain: "No linter for .zkasm" },
+        { num: 94, title: "Performance hints", pain: "No static analysis of cost" },
+        { num: 95, title: "Migration assistant", pain: "No versioned migration path yet" },
+        { num: 96, title: "SDK for every language", pain: "Only a Rust CLI + raw HTTP today" },
+        { num: 97, title: "MCP as a first-class interface", pain: "Already real — see docs/MCP.md" },
+        { num: 98, title: "Public API changelog", pain: "Only the repo CHANGELOG.md today" },
+        { num: 99, title: "Status page", pain: "No hosted uptime page" },
+        { num: 100, title: "One-line install", pain: "Today it's cargo build --release" },
+    ]
+};
+
+function renderFeatures(category) {
+    const grid = document.getElementById('featureGrid');
+    const items = features[category] || [];
+    grid.innerHTML = items.map(f => `
+        <div class="feature-card card p-4">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <span class="text-accent text-[11px] font-bold font-mono">#${f.num}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-[13px] font-semibold text-white mb-1">${f.title}</h3>
+                    <p class="text-[11px] text-gray-500 leading-relaxed">${f.pain}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+const tabBtns = document.querySelectorAll('.tab-btn');
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderFeatures(btn.dataset.tab);
+    });
+});
+renderFeatures('dev');
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+});
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+</script>
+
+</body>
+</html>
