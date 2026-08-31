@@ -1,4 +1,6 @@
-# zkVM (Phase 1 MVP)
+# rust-stark-zkvm
+
+![rust-stark-zkvm](site/assets/banner.svg)
 
 [![ZK proof CI gate](https://github.com/CodesbyFebin/rust-stark-zkvm/actions/workflows/zk-ci.yml/badge.svg)](https://github.com/CodesbyFebin/rust-stark-zkvm/actions/workflows/zk-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
