@@ -44,68 +44,41 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --bg: #f5f2ea;
-    --bg-raised: #eee9dc;
-    --bg-sunken: #e6e0cf;
-    --text: #201c14;
-    --text-muted: #6b6355;
-    --border: #d9d2bf;
-    --border-strong: #c7bea6;
-    --accent: #1f6b4f;
-    --accent-strong: #15503a;
-    --accent-soft: #e3ede6;
-    --pending: #8a6a1a;
-    --danger: #a03f2b;
-    --shadow: 0 1px 2px rgba(32,28,20,0.04), 0 8px 24px rgba(32,28,20,0.05);
-
-    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-    --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #17140e;
-      --bg-raised: #201a12;
-      --bg-sunken: #0e0c08;
-      --text: #ece6d7;
-      --text-muted: #a89b82;
-      --border: #362f1f;
-      --border-strong: #4a4028;
-      --accent: #45b389;
-      --accent-strong: #63cda3;
-      --accent-soft: #1b2b23;
-      --pending: #d1a53d;
-      --danger: #dd8266;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.35);
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #17140e;
-    --bg-raised: #201a12;
-    --bg-sunken: #0e0c08;
-    --text: #ece6d7;
-    --text-muted: #a89b82;
-    --border: #362f1f;
-    --border-strong: #4a4028;
-    --accent: #45b389;
-    --accent-strong: #63cda3;
-    --accent-soft: #1b2b23;
+    --bg: #05060a;
+    --bg-raised: #0d0f14;
+    --bg-sunken: #030405;
+    --text: #e7ece7;
+    --text-muted: #8b968c;
+    --border: #1b241f;
+    --border-strong: #2c3a30;
+    --accent: #55e08a;
+    --accent-strong: #8bffb0;
+    --accent-soft: rgba(85,224,138,0.10);
+    --accent-2: #5fd4c8;
     --pending: #d1a53d;
     --danger: #dd8266;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.35);
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
+
+    --font-display: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
   }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(620px circle at 88% 6%, rgba(85,224,138,0.09), transparent 60%),
+      radial-gradient(520px circle at 6% 92%, rgba(95,212,200,0.07), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 42px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 42px),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--text);
     font-family: var(--font-body);
     font-size: 16px;
@@ -119,7 +92,7 @@
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
   .wrap--narrow { max-width: 760px; }
 
-  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
   p { margin: 0; }
 
   .eyebrow {
@@ -132,7 +105,7 @@
     text-transform: uppercase;
     color: var(--accent);
   }
-  .eyebrow::before { content: '§'; opacity: 0.6; }
+  .eyebrow::before { content: '◆'; font-size: 8px; opacity: 0.85; }
 
   .section { padding: 96px 0; border-bottom: 1px solid var(--border); }
   .section-head { max-width: 620px; margin-bottom: 48px; }
@@ -188,6 +161,46 @@
     border: 1px solid var(--border-strong); border-radius: 2px; color: var(--text-muted);
     background: var(--bg-raised);
   }
+
+  /* ---------- Fact pills (real, verifiable claims only) ---------- */
+  .fact-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 26px; }
+  .fact-pill {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    padding: 5px 11px; border-radius: 3px; border: 1px solid var(--border-strong);
+    background: var(--bg-raised); color: var(--text-muted);
+  }
+  .fact-pill.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border-strong)); }
+  .fact-pill.on2 { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border-strong)); }
+
+  /* ---------- Tech badge row ---------- */
+  .tech-badges { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tech-badge {
+    font-family: var(--font-mono); font-size: 12.5px; font-weight: 600;
+    padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg-raised); color: var(--text-muted);
+  }
+
+  /* ---------- Diagram frame ---------- */
+  .diagram-frame {
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    background: var(--bg-sunken); box-shadow: var(--shadow);
+  }
+  .diagram-frame img { width: 100%; display: block; }
+
+  /* ---------- Repo stat bar (footer) ---------- */
+  .repo-bar {
+    display: flex; flex-wrap: wrap; gap: 28px; align-items: center;
+    padding: 18px 22px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-raised); margin-bottom: 28px;
+  }
+  .repo-stat { display: flex; flex-direction: column; gap: 2px; }
+  .repo-stat .k { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+  .repo-stat .v { font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  .repo-stat .v.accent { color: var(--accent); }
+
+  .hero-banner { max-width: 1080px; margin: 0 auto 48px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .hero-banner img { width: 100%; display: block; }
+  @media (max-width: 640px) { .hero-banner { display: none; } }
 
   .seal-wrap { display: flex; justify-content: center; align-items: center; }
   .seal {
@@ -376,7 +389,7 @@
   /* ---------- Quote / CTA ---------- */
   .quote-section { text-align: center; }
   blockquote {
-    font-family: var(--font-display); font-style: italic; font-weight: 500;
+    font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em;
     font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.4; margin: 0 0 28px;
     color: var(--text);
   }
@@ -404,8 +417,8 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top">
       <svg class="brand-mark" viewBox="0 0 26 26" aria-hidden="true">
-        <circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
-        <path d="M8 13.5l3.4 3.4L18.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polygon points="13,1.5 23,7 23,19 13,24.5 3,19 3,7" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <text x="13" y="17.5" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="var(--accent)">Z</text>
       </svg>
       zkvm<span class="dot">.</span>host
     </a>
@@ -422,6 +435,11 @@
 </nav>
 
 <section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-banner reveal">
+      <img src="/assets/banner.svg" alt="rust-stark-zkvm — STARK-verifiable virtual machine for provable computation. Open source, MIT licensed, no secret witness. Built with Rust, Winterfell, CLI, MCP server, HTTP API, Solidity, Ethereum." loading="eager">
+    </div>
+  </div>
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow">The Heroku of zkVMs</span>
@@ -430,6 +448,11 @@
       <div class="hero-ctas">
         <a class="btn btn-primary" href="#demo">See it deploy</a>
         <a class="btn btn-ghost" href="#product">How it works</a>
+      </div>
+      <div class="fact-pills">
+        <span class="fact-pill on">OPEN SOURCE</span>
+        <span class="fact-pill on">MIT LICENSED</span>
+        <span class="fact-pill on2">NO SECRET WITNESS</span>
       </div>
       <div class="backends">
         <span class="label">Compiles from</span>
@@ -454,6 +477,38 @@
         <path class="check" d="M74 101 L92 119 L128 79"/>
       </svg>
     </div>
+  </div>
+</section>
+
+<section class="section reveal">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">What's actually built, today</span>
+      <h2>One real backend, no vision copy</h2>
+      <p>Everything below this line ships now: a Rust interpreter, a from-scratch STARK AIR on Winterfell, and three ways to call it. The rest of this page is where that could go — clearly labeled as the pitch, not the product.</p>
+    </div>
+    <div class="repo-bar">
+      <div class="repo-stat"><span class="k">Rust tests</span><span class="v accent">37 passing</span></div>
+      <div class="repo-stat"><span class="k">Solidity tests</span><span class="v accent">8 passing</span></div>
+      <div class="repo-stat"><span class="k">Proof size</span><span class="v">~11 KB</span></div>
+      <div class="repo-stat"><span class="k">Verify time</span><span class="v">~5.5 ms</span></div>
+      <div class="repo-stat"><span class="k">License</span><span class="v">MIT</span></div>
+      <div class="repo-stat"><span class="k">Maintainer</span><span class="v">Single</span></div>
+    </div>
+    <div class="diagram-frame" style="margin-bottom: 28px;">
+      <img src="/assets/architecture-dark.svg" alt="program.zkasm flows through zkvm-isa and zkvm-stark, then out through the CLI, HTTP server, and MCP tools, to the on-chain demo and contracts" loading="lazy">
+    </div>
+    <div class="tech-badges">
+      <span class="tech-badge">Rust</span>
+      <span class="tech-badge">Winterfell</span>
+      <span class="tech-badge">STARK</span>
+      <span class="tech-badge">CLI</span>
+      <span class="tech-badge">MCP Server</span>
+      <span class="tech-badge">HTTP API</span>
+      <span class="tech-badge">Solidity</span>
+      <span class="tech-badge">Ethereum</span>
+    </div>
+    <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">Source, docs, and the full test suite: <a href="https://github.com/CodesbyFebin/rust-stark-zkvm" style="color: var(--accent);">github.com/CodesbyFebin/rust-stark-zkvm</a>. What's not built yet — loops, addressable memory, a trustless on-chain verifier — is tracked openly in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ROADMAP.md" style="color: var(--accent);">docs/ROADMAP.md</a>, not hidden behind marketing copy.</p>
   </div>
 </section>
 
