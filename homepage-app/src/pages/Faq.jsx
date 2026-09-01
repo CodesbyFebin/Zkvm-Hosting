@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
-import { REPO } from '../lib/constants';
 import { usePageMeta, usePageJsonLd } from '../lib/seo';
 
 const FAQS = [
@@ -92,7 +91,7 @@ export default function Faq() {
 
         <div className="mt-12 text-center font-mono text-xs text-gray-500">
           More detail on any of these: <Link to="/architecture" className="text-[#00ff41] underline">Architecture</Link>,{' '}
-          <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/ROADMAP.md`}>the real roadmap</a>, or{' '}
+          <Link to="/roadmap" className="text-[#00ff41] underline">the real roadmap</Link>, or{' '}
           <a className="text-[#00ff41] underline" href="/blog/">the blog</a>.
         </div>
       </div>

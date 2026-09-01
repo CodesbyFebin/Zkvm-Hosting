@@ -132,9 +132,10 @@ result[1 + k] = next_r_k - (write_k * acc + (E::ONE - write_k) * r_k);`}
         <Section title="Source and tests">
           <ul className="list-disc pl-5 space-y-2">
             <li><a className="text-[#00ff41] underline" href={`${REPO}/blob/main/crates/zkvm-stark/src/lib.rs`}>crates/zkvm-stark/src/lib.rs</a> — the AIR, <code>VmAir::evaluate_transition</code>, <code>VmAir::get_assertions</code></li>
-            <li><a className="text-[#00ff41] underline" href={`${REPO}/blob/main/crates/zkvm-isa`}>crates/zkvm-isa</a> — the interpreter that produces the execution trace</li>
+            <li><a className="text-[#00ff41] underline" href={`${REPO}/blob/main/crates/zkvm-isa`}>crates/zkvm-isa</a> — the interpreter that produces the execution trace, spec'd in full on the <Link to="/zkasm-spec" className="text-[#00ff41] underline">.zkasm page</Link></li>
             <li><a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/THREAT_MODEL.md`}>docs/THREAT_MODEL.md</a> — what's trustless (the proof) vs. what isn't (the on-chain payment)</li>
-            <li><a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/ROADMAP.md`}>docs/ROADMAP.md</a> — loops, addressable memory, RV32I, recursion, in the actual planned order</li>
+            <li><Link to="/roadmap" className="text-[#00ff41] underline">The real roadmap</Link> — loops, addressable memory, RV32I, recursion, in the actual planned order</li>
+            <li><Link to="/api-reference" className="text-[#00ff41] underline">HTTP API Reference</Link> and <Link to="/mcp" className="text-[#00ff41] underline">MCP tools</Link> — the two real access surfaces onto this AIR</li>
           </ul>
         </Section>
 

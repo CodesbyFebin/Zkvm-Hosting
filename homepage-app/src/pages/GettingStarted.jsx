@@ -68,13 +68,13 @@ cargo run --release -p zkvm-cli -- verify examples/fibonacci_like.zkasm out.proo
           <Code>{`cargo run --release -p zkvm-host-server &   # listens on :4477
 cargo run --release -p zkvm-cli -- deploy examples/fibonacci_like.zkasm
 cargo run --release -p zkvm-cli -- verify examples/fibonacci_like.zkasm examples/fibonacci_like.zkasm.proof`}</Code>
-          <p>This is a real HTTP round trip, not a mock -- see <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/HOST_SERVICE.md`}>docs/HOST_SERVICE.md</a> for exactly what the service does and doesn't cover.</p>
+          <p>This is a real HTTP round trip, not a mock -- see the <Link to="/api-reference" className="text-[#00ff41] underline">API Reference</Link> for every route, or <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/HOST_SERVICE.md`}>docs/HOST_SERVICE.md</a> for exactly what the service does and doesn't cover.</p>
         </Step>
 
         <Step n="4" title="Talk to it over MCP">
           <Code>{`cargo build --release -p zkvm-host-server
 ./scripts/mcp_demo.sh`}</Code>
-          <p>Exposes real <code className="text-[#00ff41]">prove</code>/<code className="text-[#00ff41]">verify</code> MCP tools on port 4478 for Claude, Cursor, or any MCP client -- see <a className="text-[#00ff41] underline" href={`${REPO}/blob/main/docs/MCP.md`}>docs/MCP.md</a>.</p>
+          <p>Exposes real <code className="text-[#00ff41]">prove</code>/<code className="text-[#00ff41]">verify</code> MCP tools on port 4478 for Claude, Cursor, or any MCP client -- see the <Link to="/mcp" className="text-[#00ff41] underline">MCP page</Link> for the exact tool schemas.</p>
         </Step>
 
         <Step n="5" title="The full on-chain loop">

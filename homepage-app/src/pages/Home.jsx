@@ -24,6 +24,9 @@ const QUICK_LINKS = [
   { to: '/playground', icon: '▶', label: 'Playground', desc: 'Run a tiny program in your browser and watch the real pipeline stages.' },
   { to: '/benchmarks', icon: '◆', label: 'Benchmarks', desc: 'Measured proof size, prove time, and verify time -- with methodology.' },
   { to: '/faq', icon: '?', label: 'FAQ', desc: 'Is this actually zero-knowledge? What is and isn\'t trustless, plainly.' },
+  { to: '/api-reference', icon: '⊞', label: 'API Reference', desc: 'Every HTTP route -- exact request/response fields, verified against the handler source.' },
+  { to: '/mcp', icon: '⌘', label: 'MCP Server', desc: 'The real prove/verify MCP tools, and why they run on their own port.' },
+  { to: '/roadmap', icon: '↻', label: 'Roadmap', desc: 'Loops, then addressable memory, then RV32I -- the real order, mirrored from docs/ROADMAP.md.' },
 ];
 
 export default function Home() {
