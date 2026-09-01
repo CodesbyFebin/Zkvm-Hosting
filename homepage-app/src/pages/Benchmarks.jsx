@@ -1,6 +1,19 @@
 import React from 'react';
 import PageHero from '../components/PageHero';
 import { BENCHMARKS, REPO } from '../lib/constants';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'rust-stark-zkvm proving and verification benchmarks',
+  description: 'Measured proof size, verify time (10 raw samples), and prove time at 1,000/2,000/4,000 instructions for the rust-stark-zkvm STARK prover.',
+  url: 'https://www.zkvm.host/benchmarks',
+  dateModified: '2026-08-31',
+  creator: { '@type': 'Organization', name: 'zkvm.host' },
+  variableMeasured: ['proof size', 'verification time', 'proving time'],
+  isBasedOn: `${REPO}/blob/main/examples/fibonacci_like.zkasm`,
+};
 
 const PROVE_CURVE = [
   { instr: '1,000', time: '~1.2s' },
@@ -11,6 +24,13 @@ const PROVE_CURVE = [
 const VERIFY_SAMPLES = [6.01, 5.34, 5.58, 5.22, 5.19, 5.85, 5.71, 5.36, 5.71, 5.2];
 
 export default function Benchmarks() {
+  usePageMeta({
+    title: 'Benchmarks',
+    description: 'Real measured proof size (~11 KB), verify time (~5.5ms), and prove time at 1,000/2,000/4,000 instructions, with full reproducible methodology.',
+    path: '/benchmarks',
+  });
+  usePageJsonLd(JSON_LD);
+
   return (
     <section className="relative py-32 px-6">
       <div className="max-w-5xl mx-auto">

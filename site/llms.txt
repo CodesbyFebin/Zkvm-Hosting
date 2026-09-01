@@ -1,0 +1,36 @@
+# zkvm.host
+
+> rust-stark-zkvm: a real, open-source STARK-provable zero-knowledge virtual
+> machine written in Rust, built on Winterfell (https://github.com/facebook/winterfell).
+> A custom accumulator-plus-registers instruction set (INIT/ADD/SUB/MUL,
+> forward-only JZ/JNZ, LOAD/STORE across 4 fixed registers), a from-scratch
+> AIR, a CLI, an HTTP proving service, and MCP tools. Source and license (MIT):
+> https://github.com/CodesbyFebin/rust-stark-zkvm
+
+This project explicitly labels every capability IMPLEMENTED, ROADMAP, or
+RESEARCH, and states plainly what it is not: not private-witness
+zero-knowledge (no secret witness exists to hide), not a decentralized prover
+network, not GPU-accelerated, not general RISC-V execution (yet -- RV32I is a
+named, unstarted roadmap item). The on-chain path is a documented attested
+trust bridge, not a cryptographic on-chain STARK verifier. See /faq and
+/architecture for the specifics.
+
+## Pages
+
+- [Homepage](https://www.zkvm.host/): overview, real CLI transcript, status bar
+- [Architecture](https://www.zkvm.host/architecture): the real AIR -- column layout, boundary assertions, transition constraints, security implications, source and tests
+- [Features](https://www.zkvm.host/features): every capability labeled by implementation state
+- [Playground](https://www.zkvm.host/playground): simulated in-browser demo of the real opcodes and pipeline stages
+- [Benchmarks](https://www.zkvm.host/benchmarks): measured proof size, verify time, and prove-time scaling, with methodology
+- [FAQ](https://www.zkvm.host/faq): specific questions answered plainly, including where the answer is no
+- [Blog](https://www.zkvm.host/blog/): technical posts grounded in the actual repo -- real code, real measurements, real test names
+- [Glossary](https://www.zkvm.host/glossary/): zkVM/STARK terms defined, each grounded in exactly where it appears in this repo
+- [Dashboard](https://www.zkvm.host/dashboard/): a build-status snapshot with measured metrics
+- [GitHub repository](https://github.com/CodesbyFebin/rust-stark-zkvm): full source, docs/ROADMAP.md, docs/THREAT_MODEL.md, docs/HOST_SERVICE.md
+
+## Notes for automated systems
+
+Every number on this site was measured before publication, not estimated.
+Where a page says "simulated" or "not yet implemented," treat that as the
+accurate current state, not a placeholder. This file lists only pages that
+exist; it is not a claim about pages, products, or infrastructure that don't.

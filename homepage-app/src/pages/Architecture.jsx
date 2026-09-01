@@ -2,6 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { ARCHITECTURE_STEPS, REPO } from '../lib/constants';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: "Architecture: Program → Proof → Verify",
+  description: "A line-by-line walk through this zkVM's real AIR -- the column layout, the boundary assertions, the two transition-constraint shapes, and what a prover cannot do -- with links to the exact source and tests.",
+  author: { '@type': 'Organization', name: 'zkvm.host' },
+  mainEntityOfPage: 'https://www.zkvm.host/architecture',
+  about: { '@type': 'SoftwareSourceCode', name: 'rust-stark-zkvm', codeRepository: REPO },
+};
 
 function Section({ title, children }) {
   return (
@@ -13,6 +24,13 @@ function Section({ title, children }) {
 }
 
 export default function Architecture() {
+  usePageMeta({
+    title: 'Architecture',
+    description: "The real AIR explained end to end: column layout, boundary assertions, the two transition-constraint shapes, security implications, and links to the exact source and tests.",
+    path: '/architecture',
+  });
+  usePageJsonLd(JSON_LD);
+
   return (
     <section className="relative py-32 px-6">
       <div className="max-w-4xl mx-auto">

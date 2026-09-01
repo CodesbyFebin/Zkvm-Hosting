@@ -1,8 +1,28 @@
 import React from 'react';
 import PageHero from '../components/PageHero';
 import { FEATURES, STATUS_COLORS, STATUS_LABELS, REPO } from '../lib/constants';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'rust-stark-zkvm features by implementation state',
+  itemListElement: FEATURES.map((f, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: f.title,
+    description: `[${f.status.toUpperCase()}] ${f.desc}`,
+  })),
+};
 
 export default function Features() {
+  usePageMeta({
+    title: 'Features',
+    description: 'Every capability explicitly labeled IMPLEMENTED, ROADMAP, or RESEARCH -- what this zkVM actually does today, versus what it does not yet.',
+    path: '/features',
+  });
+  usePageJsonLd(JSON_LD);
+
   return (
     <section className="relative py-32 px-6">
       <div className="max-w-7xl mx-auto">

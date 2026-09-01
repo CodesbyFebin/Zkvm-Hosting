@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { REPO } from '../lib/constants';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
 
 const FAQS = [
   {
@@ -42,7 +43,24 @@ const FAQS = [
   },
 ];
 
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
+};
+
 export default function Faq() {
+  usePageMeta({
+    title: 'FAQ',
+    description: "Is this actually zero-knowledge? Is the on-chain part trustless? Is there a decentralized prover network? Answered plainly, including where the honest answer is no.",
+    path: '/faq',
+  });
+  usePageJsonLd(JSON_LD);
+
   const [open, setOpen] = useState(0);
 
   return (

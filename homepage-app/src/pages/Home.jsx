@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { REPO, TERMINAL_LINES, USE_CASES, TECH_STACK } from '../lib/constants';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: 'rust-stark-zkvm',
+  alternateName: 'zkvm.host',
+  description: 'A real STARK-provable zero-knowledge virtual machine written in Rust, built on Winterfell: a custom instruction set with conditional branching and a register file, a from-scratch AIR, an HTTP + MCP proving service, and Foundry contracts with a documented on-chain trust model.',
+  codeRepository: REPO,
+  programmingLanguage: ['Rust', 'Solidity'],
+  license: `${REPO}/blob/main/LICENSE`,
+  url: 'https://www.zkvm.host/',
+  sameAs: [REPO],
+};
 
 const QUICK_LINKS = [
   { to: '/architecture', icon: '◫', label: 'Architecture', desc: 'Diagram, invariants, source, tests -- the real AIR explained end to end.' },
@@ -11,6 +25,13 @@ const QUICK_LINKS = [
 ];
 
 export default function Home() {
+  usePageMeta({
+    title: 'Open-Source STARK Proving Infrastructure',
+    description: 'A real, open-source STARK-provable zero-knowledge virtual machine written in Rust. Every capability explicitly labeled implemented, roadmap, or research -- no marketing fiction.',
+    path: '/',
+  });
+  usePageJsonLd(JSON_LD);
+
   const [terminalCount, setTerminalCount] = useState(0);
 
   // Reveals TERMINAL_LINES one at a time. Written so a duplicate effect

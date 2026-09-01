@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
+import { usePageMeta, usePageJsonLd } from '../lib/seo';
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'zkvm.host Proof Playground',
+  description: 'An in-browser, simulated walk through the real proving pipeline stages using real zkasm opcodes. Does not generate an actual STARK proof.',
+  url: 'https://www.zkvm.host/playground',
+  isPartOf: { '@type': 'WebSite', name: 'zkvm.host', url: 'https://www.zkvm.host/' },
+};
 
 const STAGES = ['Parsing', 'Executing', 'Building trace', 'Arithmetizing (AIR)', 'Generating STARK proof', 'Verifying'];
 
 export default function Playground() {
+  usePageMeta({
+    title: 'Proof Playground',
+    description: 'Run a tiny program with real opcodes in your browser and watch the real proving pipeline stages animate -- simulated, not a real proof.',
+    path: '/playground',
+  });
+  usePageJsonLd(JSON_LD);
+
   const [playgroundCode, setPlaygroundCode] = useState('INIT 7\nMUL 6\nADD 1');
   const [playgroundOutput, setPlaygroundOutput] = useState(null);
   const [playgroundRunning, setPlaygroundRunning] = useState(false);
