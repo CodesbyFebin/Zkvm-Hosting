@@ -1,5 +1,6 @@
 /target
 *.proof
+node_modules/
 
 # contracts/ (Foundry)
 contracts/out/
