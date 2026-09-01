@@ -17,7 +17,9 @@ const JSON_LD = {
 };
 
 const QUICK_LINKS = [
+  { to: '/getting-started', icon: '▸', label: 'Getting Started', desc: 'Clone, build, prove, verify -- real commands, in order.' },
   { to: '/architecture', icon: '◫', label: 'Architecture', desc: 'Diagram, invariants, source, tests -- the real AIR explained end to end.' },
+  { to: '/zkasm-spec', icon: '</>', label: '.zkasm Spec', desc: 'The complete real instruction set and the forward-only jump rule, verified against the parser.' },
   { to: '/features', icon: '✓', label: 'Features', desc: 'Every capability labeled IMPLEMENTED, ROADMAP, or RESEARCH. No marketing fiction.' },
   { to: '/playground', icon: '▶', label: 'Playground', desc: 'Run a tiny program in your browser and watch the real pipeline stages.' },
   { to: '/benchmarks', icon: '◆', label: 'Benchmarks', desc: 'Measured proof size, prove time, and verify time -- with methodology.' },

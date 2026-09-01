@@ -130,6 +130,7 @@ export const BENCHMARKS = [
 ];
 
 export const NAV_LINKS = [
+  { to: '/getting-started', label: 'Get Started' },
   { to: '/architecture', label: 'Architecture' },
   { to: '/features', label: 'Features' },
   { to: '/playground', label: 'Playground' },

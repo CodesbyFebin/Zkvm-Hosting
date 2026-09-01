@@ -10,6 +10,8 @@ import Features from './pages/Features';
 import Playground from './pages/Playground';
 import Benchmarks from './pages/Benchmarks';
 import Faq from './pages/Faq';
+import GettingStarted from './pages/GettingStarted';
+import ZkasmSpec from './pages/ZkasmSpec';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/playground" element={<Playground />} />
         <Route path="/benchmarks" element={<Benchmarks />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/getting-started" element={<GettingStarted />} />
+        <Route path="/zkasm-spec" element={<ZkasmSpec />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

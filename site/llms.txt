@@ -18,7 +18,9 @@ trust bridge, not a cryptographic on-chain STARK verifier. See /faq and
 ## Pages
 
 - [Homepage](https://www.zkvm.host/): overview, real CLI transcript, status bar
+- [Getting Started](https://www.zkvm.host/getting-started): the real CLI walkthrough -- clone, build, prove, verify, HTTP, MCP, on-chain demo
 - [Architecture](https://www.zkvm.host/architecture): the real AIR -- column layout, boundary assertions, transition constraints, security implications, source and tests
+- [.zkasm Language Spec](https://www.zkvm.host/zkasm-spec): the complete real instruction set and the forward-only jump constraint, verified against the parser source
 - [Features](https://www.zkvm.host/features): every capability labeled by implementation state
 - [Playground](https://www.zkvm.host/playground): simulated in-browser demo of the real opcodes and pipeline stages
 - [Benchmarks](https://www.zkvm.host/benchmarks): measured proof size, verify time, and prove-time scaling, with methodology
