@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Execution trace — zkVM &amp; STARK Glossary</title>
+<meta name="description" content="What an execution trace is in a STARK, and the real column layout (10 fixed columns plus two per register) this zkVM's trace uses.">
+<link rel="canonical" href="https://www.zkvm.host/glossary/execution-trace/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<style>
+  .in-repo { font-size: 0.92em; color: var(--text-muted); background: var(--bg-raised); border-radius: 6px; padding: 14px 16px; margin: 20px 0; }
+  .in-repo strong { color: var(--text); }
+  .also { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); display: block; margin: -8px 0 20px; }
+  .related { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .related a { font-family: var(--font-mono); font-size: 12.5px; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "name": "Execution trace",
+  "description": "What an execution trace is in a STARK, and the real column layout (10 fixed columns plus two per register) this zkVM's trace uses.",
+  "url": "https://www.zkvm.host/glossary/execution-trace/",
+  "inDefinedTermSet": "https://www.zkvm.host/glossary/"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/glossary/">Glossary</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">AIR design</span>
+  <h1>Execution trace</h1>
+  
+  <p>A table recording the full state of a machine at every step of a computation — one row per step, one column per piece of state. The AIR's constraints are checked against this table.</p>
+
+  <div class="in-repo"><strong>In this repo:</strong> one row per <em>static</em> instruction (not per executed step — a skipped branch still gets a row with <code>active = 0</code>), 10 fixed columns plus two per register. Produced by <code>zkvm_isa::execute</code>.</div>
+
+  <div class="post-footer">
+    <div class="related">Related terms: <a href="/glossary/air/">AIR</a>, <a href="/glossary/transition-constraint/">Transition constraint</a>, <a href="/glossary/boundary-constraint/">Boundary constraint</a></div>
+    <p style="margin-top:14px;"><a href="/glossary/">← Back to the full glossary</a></p>
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/glossary/">All terms</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

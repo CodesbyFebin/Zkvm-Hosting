@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verifier — zkVM &amp; STARK Glossary</title>
+<meta name="description" content="What a verifier checks and why it doesn't need to trust the prover -- plus this zkVM's real measured verify time of about 5.5ms.">
+<link rel="canonical" href="https://www.zkvm.host/glossary/verifier/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<style>
+  .in-repo { font-size: 0.92em; color: var(--text-muted); background: var(--bg-raised); border-radius: 6px; padding: 14px 16px; margin: 20px 0; }
+  .in-repo strong { color: var(--text); }
+  .also { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); display: block; margin: -8px 0 20px; }
+  .related { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .related a { font-family: var(--font-mono); font-size: 12.5px; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "name": "Verifier",
+  "description": "What a verifier checks and why it doesn't need to trust the prover -- plus this zkVM's real measured verify time of about 5.5ms.",
+  "url": "https://www.zkvm.host/glossary/verifier/",
+  "inDefinedTermSet": "https://www.zkvm.host/glossary/"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/glossary/">Glossary</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Core concept</span>
+  <h1>Verifier</h1>
+  
+  <p>The party that checks a proof without needing to trust the prover or re-run the full computation. A sound proof system guarantees a verifier will reject any proof of a false claim, no matter how the prover tries to cheat.</p>
+
+  <div class="in-repo"><strong>In this repo:</strong> <code>zkvm-stark::verify_program</code>, ~5.5ms measured end to end including re-execution — see <a href="/blog/sub-10ms-verify/">the verify-time post</a> for the exact methodology.</div>
+
+  <div class="post-footer">
+    <div class="related">Related terms: <a href="/glossary/prover/">Prover</a>, <a href="/glossary/stark/">STARK</a></div>
+    <p style="margin-top:14px;"><a href="/glossary/">← Back to the full glossary</a></p>
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/glossary/">All terms</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

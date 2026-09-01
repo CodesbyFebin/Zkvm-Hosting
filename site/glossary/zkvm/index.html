@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>zkVM — zkVM &amp; STARK Glossary</title>
+<meta name="description" content="What a zkVM is, and why 'zk' usually means 'provable' rather than 'private' -- defined plainly, then grounded in this project's real accumulator-plus-registers machine.">
+<link rel="canonical" href="https://www.zkvm.host/glossary/zkvm/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<style>
+  .in-repo { font-size: 0.92em; color: var(--text-muted); background: var(--bg-raised); border-radius: 6px; padding: 14px 16px; margin: 20px 0; }
+  .in-repo strong { color: var(--text); }
+  .also { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); display: block; margin: -8px 0 20px; }
+  .related { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .related a { font-family: var(--font-mono); font-size: 12.5px; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "name": "zkVM",
+  "description": "What a zkVM is, and why 'zk' usually means 'provable' rather than 'private' -- defined plainly, then grounded in this project's real accumulator-plus-registers machine.",
+  "url": "https://www.zkvm.host/glossary/zkvm/",
+  "inDefinedTermSet": "https://www.zkvm.host/glossary/"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/glossary/">Glossary</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Core concept</span>
+  <h1>zkVM</h1>
+  <span class="also">zero-knowledge virtual machine</span>
+  <p>A virtual machine whose execution can be proven correct with a cryptographic proof, so a verifier can check the result without re-running the program. Despite the name, most zkVMs (this one included) don't hide any inputs — “zk” here is industry shorthand for “provable,” not a guarantee of privacy.</p>
+
+  <div class="in-repo"><strong>In this repo:</strong> a small accumulator-plus-registers machine defined in <code>zkvm-isa</code>, executing <code>.zkasm</code> programs (<code>ADD</code>/<code>SUB</code>/<code>MUL</code>/<code>JZ</code>/<code>JNZ</code>/<code>LOAD</code>/<code>STORE</code>). See the <a href="/">homepage</a> for the full instruction set.</div>
+
+  <div class="post-footer">
+    <div class="related">Related terms: <a href="/glossary/stark/">STARK</a>, <a href="/glossary/air/">AIR</a>, <a href="/glossary/no-secret-witness/">No secret witness</a></div>
+    <p style="margin-top:14px;"><a href="/glossary/">← Back to the full glossary</a></p>
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/glossary/">All terms</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

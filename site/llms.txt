@@ -40,7 +40,7 @@ trust bridge, not a cryptographic on-chain STARK verifier. See /faq and
 - [Benchmarks](https://www.zkvm.host/benchmarks): measured proof size, verify time, and prove-time scaling, with methodology
 - [FAQ](https://www.zkvm.host/faq): specific questions answered plainly, including where the answer is no
 - [Blog](https://www.zkvm.host/blog/): technical posts grounded in the actual repo -- real code, real measurements, real test names
-- [Glossary](https://www.zkvm.host/glossary/): zkVM/STARK terms defined, each grounded in exactly where it appears in this repo
+- [Glossary](https://www.zkvm.host/glossary/): zkVM/STARK terms defined, each grounded in exactly where it appears in this repo. Each of the 16 terms also has its own canonical page at /glossary/<term>/ (e.g. /glossary/stark/, /glossary/fri/, /glossary/no-secret-witness/) with a term-specific definition, its real in-repo grounding, and related-term links
 - [Dashboard](https://www.zkvm.host/dashboard/): a build-status snapshot with measured metrics
 - [GitHub repository](https://github.com/CodesbyFebin/rust-stark-zkvm): full source, docs/ROADMAP.md, docs/THREAT_MODEL.md, docs/HOST_SERVICE.md
 

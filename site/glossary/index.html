@@ -19,22 +19,22 @@
   "description": "Definitions of the STARK and zkVM terms used across the rust-stark-zkvm project.",
   "url": "https://www.zkvm.host/glossary/",
   "hasDefinedTerm": [
-    { "@type": "DefinedTerm", "name": "zkVM", "url": "https://www.zkvm.host/glossary/#zkvm" },
-    { "@type": "DefinedTerm", "name": "STARK", "url": "https://www.zkvm.host/glossary/#stark" },
-    { "@type": "DefinedTerm", "name": "SNARK", "url": "https://www.zkvm.host/glossary/#snark" },
-    { "@type": "DefinedTerm", "name": "AIR", "url": "https://www.zkvm.host/glossary/#air" },
-    { "@type": "DefinedTerm", "name": "Execution trace", "url": "https://www.zkvm.host/glossary/#trace" },
-    { "@type": "DefinedTerm", "name": "Transition constraint", "url": "https://www.zkvm.host/glossary/#transition-constraint" },
-    { "@type": "DefinedTerm", "name": "Boundary constraint", "url": "https://www.zkvm.host/glossary/#boundary-constraint" },
-    { "@type": "DefinedTerm", "name": "FRI", "url": "https://www.zkvm.host/glossary/#fri" },
-    { "@type": "DefinedTerm", "name": "Winterfell", "url": "https://www.zkvm.host/glossary/#winterfell" },
-    { "@type": "DefinedTerm", "name": "Witness", "url": "https://www.zkvm.host/glossary/#witness" },
-    { "@type": "DefinedTerm", "name": "No secret witness", "url": "https://www.zkvm.host/glossary/#no-secret-witness" },
-    { "@type": "DefinedTerm", "name": "One-hot selector", "url": "https://www.zkvm.host/glossary/#one-hot-selector" },
-    { "@type": "DefinedTerm", "name": "Prover", "url": "https://www.zkvm.host/glossary/#prover" },
-    { "@type": "DefinedTerm", "name": "Verifier", "url": "https://www.zkvm.host/glossary/#verifier" },
-    { "@type": "DefinedTerm", "name": "Attestation", "url": "https://www.zkvm.host/glossary/#attestation" },
-    { "@type": "DefinedTerm", "name": "MCP", "url": "https://www.zkvm.host/glossary/#mcp" }
+    { "@type": "DefinedTerm", "name": "zkVM", "url": "https://www.zkvm.host/glossary/zkvm/" },
+    { "@type": "DefinedTerm", "name": "STARK", "url": "https://www.zkvm.host/glossary/stark/" },
+    { "@type": "DefinedTerm", "name": "SNARK", "url": "https://www.zkvm.host/glossary/snark/" },
+    { "@type": "DefinedTerm", "name": "AIR", "url": "https://www.zkvm.host/glossary/air/" },
+    { "@type": "DefinedTerm", "name": "Execution trace", "url": "https://www.zkvm.host/glossary/execution-trace/" },
+    { "@type": "DefinedTerm", "name": "Transition constraint", "url": "https://www.zkvm.host/glossary/transition-constraint/" },
+    { "@type": "DefinedTerm", "name": "Boundary constraint", "url": "https://www.zkvm.host/glossary/boundary-constraint/" },
+    { "@type": "DefinedTerm", "name": "FRI", "url": "https://www.zkvm.host/glossary/fri/" },
+    { "@type": "DefinedTerm", "name": "Winterfell", "url": "https://www.zkvm.host/glossary/winterfell/" },
+    { "@type": "DefinedTerm", "name": "Witness", "url": "https://www.zkvm.host/glossary/witness/" },
+    { "@type": "DefinedTerm", "name": "No secret witness", "url": "https://www.zkvm.host/glossary/no-secret-witness/" },
+    { "@type": "DefinedTerm", "name": "One-hot selector", "url": "https://www.zkvm.host/glossary/one-hot-selector/" },
+    { "@type": "DefinedTerm", "name": "Prover", "url": "https://www.zkvm.host/glossary/prover/" },
+    { "@type": "DefinedTerm", "name": "Verifier", "url": "https://www.zkvm.host/glossary/verifier/" },
+    { "@type": "DefinedTerm", "name": "Attestation", "url": "https://www.zkvm.host/glossary/attestation/" },
+    { "@type": "DefinedTerm", "name": "MCP", "url": "https://www.zkvm.host/glossary/mcp/" }
   ]
 }
 </script>
@@ -49,6 +49,8 @@
   .term p { margin: 0 0 12px; }
   .term .in-repo { font-size: 0.92em; color: var(--text-muted); background: var(--bg-raised); border-radius: 6px; padding: 10px 14px; }
   .term .in-repo strong { color: var(--text); }
+  .term-link { color: inherit; text-decoration: none; }
+  .term-link:hover { color: var(--accent-strong); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -66,124 +68,124 @@
 <article class="wrap">
   <span class="eyebrow">Reference</span>
   <h1>zkVM &amp; STARK Glossary</h1>
-  <p class="dek">Sixteen terms, defined the standard way first, then grounded in exactly where each one shows up in this repo's real code — not a generic crossword-style dictionary disconnected from an actual implementation.</p>
+  <p class="dek">Sixteen terms, defined the standard way first, then grounded in exactly where each one shows up in this repo's real code — not a generic crossword-style dictionary disconnected from an actual implementation. Each term also has its own page, linked below and from every heading.</p>
 
   <nav class="toc" aria-label="Jump to a term">
-    <a href="#zkvm">zkVM</a>
-    <a href="#stark">STARK</a>
-    <a href="#snark">SNARK</a>
-    <a href="#air">AIR</a>
-    <a href="#trace">Execution trace</a>
-    <a href="#transition-constraint">Transition constraint</a>
-    <a href="#boundary-constraint">Boundary constraint</a>
-    <a href="#fri">FRI</a>
-    <a href="#winterfell">Winterfell</a>
-    <a href="#witness">Witness</a>
-    <a href="#no-secret-witness">No secret witness</a>
-    <a href="#one-hot-selector">One-hot selector</a>
-    <a href="#prover">Prover</a>
-    <a href="#verifier">Verifier</a>
-    <a href="#attestation">Attestation</a>
-    <a href="#mcp">MCP</a>
+    <a href="/glossary/zkvm/">zkVM</a>
+    <a href="/glossary/stark/">STARK</a>
+    <a href="/glossary/snark/">SNARK</a>
+    <a href="/glossary/air/">AIR</a>
+    <a href="/glossary/execution-trace/">Execution trace</a>
+    <a href="/glossary/transition-constraint/">Transition constraint</a>
+    <a href="/glossary/boundary-constraint/">Boundary constraint</a>
+    <a href="/glossary/fri/">FRI</a>
+    <a href="/glossary/winterfell/">Winterfell</a>
+    <a href="/glossary/witness/">Witness</a>
+    <a href="/glossary/no-secret-witness/">No secret witness</a>
+    <a href="/glossary/one-hot-selector/">One-hot selector</a>
+    <a href="/glossary/prover/">Prover</a>
+    <a href="/glossary/verifier/">Verifier</a>
+    <a href="/glossary/attestation/">Attestation</a>
+    <a href="/glossary/mcp/">MCP</a>
   </nav>
 
   <div class="term" id="zkvm">
-    <h2>zkVM</h2>
+    <h2><a href="/glossary/zkvm/" class="term-link">zkVM</a></h2>
     <span class="also">zero-knowledge virtual machine</span>
     <p>A virtual machine whose execution can be proven correct with a cryptographic proof, so a verifier can check the result without re-running the program. Despite the name, most zkVMs (this one included) don't hide any inputs — "zk" here is industry shorthand for "provable," not a guarantee of privacy.</p>
     <p class="in-repo"><strong>In this repo:</strong> a small accumulator-plus-registers machine defined in <code>zkvm-isa</code>, executing <code>.zkasm</code> programs (<code>ADD</code>/<code>SUB</code>/<code>MUL</code>/<code>JZ</code>/<code>JNZ</code>/<code>LOAD</code>/<code>STORE</code>). See the <a href="/">homepage</a> for the full instruction set.</p>
   </div>
 
   <div class="term" id="stark">
-    <h2>STARK</h2>
+    <h2><a href="/glossary/stark/" class="term-link">STARK</a></h2>
     <span class="also">Scalable Transparent ARgument of Knowledge</span>
     <p>A type of cryptographic proof that a computation was performed correctly. "Scalable" means proving/verifying cost grows well with computation size; "Transparent" means it needs no trusted setup ceremony (unlike many SNARKs); "Argument of Knowledge" means it proves the prover actually knows a valid execution, not just that one could exist.</p>
     <p class="in-repo"><strong>In this repo:</strong> produced by <code>zkvm-stark::prove_program</code> and checked by <code>verify_program</code>, built on <a href="#winterfell">Winterfell</a>. Real proof, ~11 KB, ~5.5ms to verify — see <a href="/blog/sub-10ms-verify/">the verify-time benchmark post</a>.</p>
   </div>
 
   <div class="term" id="snark">
-    <h2>SNARK</h2>
+    <h2><a href="/glossary/snark/" class="term-link">SNARK</a></h2>
     <span class="also">Succinct Non-interactive ARgument of Knowledge</span>
     <p>The other major family of proof system. SNARKs typically produce smaller proofs and cheaper on-chain verification than STARKs, at the cost of larger proving keys, often a trusted setup, and (for most constructions) vulnerability to quantum attacks that STARKs' hash-based commitments resist.</p>
     <p class="in-repo"><strong>In this repo:</strong> not used directly, but relevant to the honest scope of the on-chain path — wrapping this system's STARK in a SNARK cheap enough to verify on-chain is one of two paths described in <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/blob/main/docs/ONCHAIN_VERIFIER.md">docs/ONCHAIN_VERIFIER.md</a> for closing the current trust gap. See <a href="/blog/the-trust-boundary/">the trust-boundary post</a>.</p>
   </div>
 
   <div class="term" id="air">
-    <h2>AIR</h2>
+    <h2><a href="/glossary/air/" class="term-link">AIR</a></h2>
     <span class="also">Algebraic Intermediate Representation</span>
     <p>The set of polynomial constraints that describe "what makes an execution trace valid" for a STARK. An AIR splits into <a href="#transition-constraint">transition constraints</a> (checked between consecutive rows) and <a href="#boundary-constraint">boundary constraints</a> (checked at specific rows, like the first or last).</p>
     <p class="in-repo"><strong>In this repo:</strong> <code>VmAir</code> in <code>crates/zkvm-stark/src/lib.rs</code> — one transition constraint for the accumulator, one per register, and nine boundary assertions per row. Full walk-through: <a href="/blog/reading-a-winterfell-air/">Reading a Winterfell AIR</a>.</p>
   </div>
 
   <div class="term" id="trace">
-    <h2>Execution trace</h2>
+    <h2><a href="/glossary/execution-trace/" class="term-link">Execution trace</a></h2>
     <p>A table recording the full state of a machine at every step of a computation — one row per step, one column per piece of state. The AIR's constraints are checked against this table.</p>
     <p class="in-repo"><strong>In this repo:</strong> one row per <em>static</em> instruction (not per executed step — a skipped branch still gets a row with <code>active = 0</code>), 10 fixed columns plus two per register. Produced by <code>zkvm_isa::execute</code>.</p>
   </div>
 
   <div class="term" id="transition-constraint">
-    <h2>Transition constraint</h2>
+    <h2><a href="/glossary/transition-constraint/" class="term-link">Transition constraint</a></h2>
     <p>A polynomial equation that must hold between every consecutive pair of rows in the trace — the algebraic way of saying "this column evolves correctly from one step to the next."</p>
     <p class="in-repo"><strong>In this repo:</strong> exactly two shapes — the accumulator's update, and each register's update — both walked through line by line in <a href="/blog/reading-a-winterfell-air/">Reading a Winterfell AIR</a>, including why the declared degree is 4 even though the interpolated degree is usually 3.</p>
   </div>
 
   <div class="term" id="boundary-constraint">
-    <h2>Boundary constraint</h2>
+    <h2><a href="/glossary/boundary-constraint/" class="term-link">Boundary constraint</a></h2>
     <p>A polynomial equation that must hold at one specific row of the trace — typically the first, the last, or (less commonly) every row when the verifier already knows the correct value there.</p>
     <p class="in-repo"><strong>In this repo:</strong> used unusually heavily — nine values are boundary-asserted on <em>every</em> row, not just the first/last, because there's <a href="#no-secret-witness">no secret witness</a> to hide them behind. See <a href="/blog/no-secret-witness/">why this zkVM's soundness doesn't need a lookup argument</a>.</p>
   </div>
 
   <div class="term" id="fri">
-    <h2>FRI</h2>
+    <h2><a href="/glossary/fri/" class="term-link">FRI</a></h2>
     <span class="also">Fast Reed-Solomon Interactive Oracle Proof of Proximity</span>
     <p>The low-degree testing protocol that lets a STARK prover convince a verifier that a committed polynomial really is close to low-degree, without the verifier evaluating it everywhere. It's the piece that makes STARKs "scalable" and avoids a trusted setup.</p>
     <p class="in-repo"><strong>In this repo:</strong> handled entirely inside Winterfell — this project doesn't implement FRI itself, it configures and calls Winterfell's implementation via <code>ProofOptions</code> in <code>zkvm-stark</code>.</p>
   </div>
 
   <div class="term" id="winterfell">
-    <h2>Winterfell</h2>
+    <h2><a href="/glossary/winterfell/" class="term-link">Winterfell</a></h2>
     <p><a href="https://github.com/facebook/winterfell">A Rust STARK prover/verifier library</a>, originally released by Facebook/Novi. It handles the FRI protocol, polynomial commitments, and Merkle tree machinery; callers define an <code>Air</code> implementation describing their own transition and boundary constraints.</p>
     <p class="in-repo"><strong>In this repo:</strong> the entire cryptographic engine underneath <code>zkvm-stark</code>. One quirk worth knowing if you're using it too: its debug-only <code>validate_transition_degrees</code> self-check is stricter than actual soundness requires — see <a href="/blog/winterfell-degree-bug/">the reproduction and why release mode is correct here</a>.</p>
   </div>
 
   <div class="term" id="witness">
-    <h2>Witness</h2>
+    <h2><a href="/glossary/witness/" class="term-link">Witness</a></h2>
     <p>The private input to a computation that a prover knows but a verifier doesn't — the thing a zero-knowledge proof lets you prove something about without revealing. Contrasted with <em>public inputs</em>, which both parties see.</p>
     <p class="in-repo"><strong>In this repo:</strong> there isn't one — see <a href="#no-secret-witness">no secret witness</a>.</p>
   </div>
 
   <div class="term" id="no-secret-witness">
-    <h2>No secret witness</h2>
+    <h2><a href="/glossary/no-secret-witness/" class="term-link">No secret witness</a></h2>
     <p>This project's own term (not standard industry vocabulary) for a specific design choice: the program and its inputs are entirely public, so the verifier can re-execute the program itself and knows the correct value of almost every trace column in advance — turning most of what would need an algebraic gadget elsewhere into a direct boundary assertion.</p>
     <p class="in-repo"><strong>In this repo:</strong> the reason branch outcomes and register selectors don't need an is-zero/lookup gadget. Full argument: <a href="/blog/no-secret-witness/">Why This zkVM's Soundness Doesn't Need a Lookup Argument</a>.</p>
   </div>
 
   <div class="term" id="one-hot-selector">
-    <h2>One-hot selector</h2>
+    <h2><a href="/glossary/one-hot-selector/" class="term-link">One-hot selector</a></h2>
     <p>A set of columns where exactly one is <code>1</code> and the rest are <code>0</code>, used to encode "which of N options is active" in a way that's cheap to check and multiply against algebraically (multiplying by a 0/1 selector acts like a conditional).</p>
     <p class="in-repo"><strong>In this repo:</strong> two uses — seven columns selecting the opcode (<code>s_add</code>...<code>s_store</code>), and <code>NUM_REGISTERS</code> columns (<code>reg_sel</code>) selecting which register a <code>LOAD</code>/<code>STORE</code> addresses. See <a href="/blog/registers-without-a-mux/">A Register File Without an Algebraic Mux</a>.</p>
   </div>
 
   <div class="term" id="prover">
-    <h2>Prover</h2>
+    <h2><a href="/glossary/prover/" class="term-link">Prover</a></h2>
     <p>The party that runs a computation and produces a proof of its correctness. Proving is typically far more computationally expensive than verifying — that asymmetry is the whole value proposition of a STARK/SNARK.</p>
     <p class="in-repo"><strong>In this repo:</strong> <code>zkvm-stark::prove_program</code>, callable via the CLI, <code>POST /v1/proofs</code>, or the <code>prove</code> MCP tool. Real measured proving times: ~1.2s at 1,000 instructions, ~32s at 4,000 — see <a href="/blog/hardening-a-prover-api/">the hardening post</a> for why that curve matters.</p>
   </div>
 
   <div class="term" id="verifier">
-    <h2>Verifier</h2>
+    <h2><a href="/glossary/verifier/" class="term-link">Verifier</a></h2>
     <p>The party that checks a proof without needing to trust the prover or re-run the full computation. A sound proof system guarantees a verifier will reject any proof of a false claim, no matter how the prover tries to cheat.</p>
     <p class="in-repo"><strong>In this repo:</strong> <code>zkvm-stark::verify_program</code>, ~5.5ms measured end to end including re-execution — see <a href="/blog/sub-10ms-verify/">the verify-time post</a> for the exact methodology.</p>
   </div>
 
   <div class="term" id="attestation">
-    <h2>Attestation</h2>
+    <h2><a href="/glossary/attestation/" class="term-link">Attestation</a></h2>
     <p>In this context: a signed statement from a designated party that something is true, used as a (trusted, not cryptographic) stand-in for a check that isn't otherwise implemented. Different from a proof — an attestation asks you to trust who's speaking, a proof doesn't.</p>
     <p class="in-repo"><strong>In this repo:</strong> <code>AttestedVerifier.sol</code> accepts a proof once a designated <code>attester</code> address calls <code>attest(...)</code> — an explicit trust bridge, not a cryptographic on-chain check. See <a href="/blog/the-trust-boundary/">The Trust Boundary, Written Down</a>.</p>
   </div>
 
   <div class="term" id="mcp">
-    <h2>MCP</h2>
+    <h2><a href="/glossary/mcp/" class="term-link">MCP</a></h2>
     <span class="also">Model Context Protocol</span>
     <p>An open protocol for connecting AI applications (like Claude or Cursor) to external tools and data sources over a standard <code>initialize</code> → <code>tools/list</code> → <code>tools/call</code> handshake.</p>
     <p class="in-repo"><strong>In this repo:</strong> <code>prove</code> and <code>verify</code> exposed as real MCP tools via the <a href="https://github.com/modelcontextprotocol/rust-sdk"><code>rmcp</code></a> crate, on their own port (4478) rather than nested onto the HTTP API. See <a href="/blog/mcp-meets-stark/">Connecting Claude to a Real STARK Prover via MCP</a>.</p>

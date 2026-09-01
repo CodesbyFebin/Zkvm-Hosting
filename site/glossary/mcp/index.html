@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP — zkVM &amp; STARK Glossary</title>
+<meta name="description" content="What MCP is and its initialize / tools-list / tools-call handshake -- and the real prove/verify MCP tools this zkVM exposes on their own port.">
+<link rel="canonical" href="https://www.zkvm.host/glossary/mcp/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/style.css">
+<style>
+  .in-repo { font-size: 0.92em; color: var(--text-muted); background: var(--bg-raised); border-radius: 6px; padding: 14px 16px; margin: 20px 0; }
+  .in-repo strong { color: var(--text); }
+  .also { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); display: block; margin: -8px 0 20px; }
+  .related { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .related a { font-family: var(--font-mono); font-size: 12.5px; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  "name": "MCP",
+  "description": "What MCP is and its initialize / tools-list / tools-call handshake -- and the real prove/verify MCP tools this zkVM exposes on their own port.",
+  "url": "https://www.zkvm.host/glossary/mcp/",
+  "inDefinedTermSet": "https://www.zkvm.host/glossary/"
+}
+</script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/">zkvm<span class="dot">.</span>host</a>
+    <div class="nav-links">
+      <a href="/blog/">Blog</a>
+      <a href="/glossary/">Glossary</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<article class="wrap">
+  <span class="eyebrow">Interface</span>
+  <h1>MCP</h1>
+  <span class="also">Model Context Protocol</span>
+  <p>An open protocol for connecting AI applications (like Claude or Cursor) to external tools and data sources over a standard <code>initialize</code> → <code>tools/list</code> → <code>tools/call</code> handshake.</p>
+
+  <div class="in-repo"><strong>In this repo:</strong> <code>prove</code> and <code>verify</code> exposed as real MCP tools via the <a href="https://github.com/modelcontextprotocol/rust-sdk"><code>rmcp</code></a> crate, on their own port (4478) rather than nested onto the HTTP API. See <a href="/blog/mcp-meets-stark/">Connecting Claude to a Real STARK Prover via MCP</a>.</div>
+
+  <div class="post-footer">
+    <div class="related">Related terms: <a href="/glossary/prover/">Prover</a>, <a href="/glossary/verifier/">Verifier</a></div>
+    <p style="margin-top:14px;"><a href="/glossary/">← Back to the full glossary</a></p>
+  </div>
+</article>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>zkvm.host</span>
+    <div style="display:flex;gap:18px;">
+      <a href="/glossary/">All terms</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm">GitHub</a>
+      <a href="https://github.com/CodesbyFebin/rust-stark-zkvm/tree/main/funding">Funding</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
