@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { REPO } from '../lib/constants';
 
 export default function Footer() {
@@ -20,6 +21,8 @@ export default function Footer() {
           <a href="/glossary/" className="hover:text-[#00ff41]">◉ Glossary</a>
           <a href="/dashboard/" className="hover:text-[#00ff41]">▤ Dashboard</a>
           <a href={`${REPO}/tree/main/funding`} target="_blank" rel="noreferrer" className="hover:text-[#00ff41]">♡ Funding</a>
+          <Link to="/contributing" className="hover:text-[#00ff41]">⚒ Contributing</Link>
+          <Link to="/security" className="hover:text-[#00ff41]">⚑ Security</Link>
         </div>
       </div>
     </footer>

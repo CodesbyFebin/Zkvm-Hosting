@@ -89,7 +89,8 @@ export default function OnchainVerifier() {
             verifier itself as a program, prove <em>that verifier's execution</em> with a SNARK that has a small, fixed,
             cheap-to-verify proof and a real EVM precompile for the underlying pairing curve, and put only that small
             SNARK-verification call on-chain. STARK for cheap, fast, transparent-setup proving of the actual computation;
-            a thin SNARK wrapper only for the part that has to run on Ethereum.
+            a thin SNARK wrapper only for the part that has to run on Ethereum. This is "recursion" in practice — see{' '}
+            <Link to="/recursion" className="text-[#00ff41] underline">the Recursion page</Link> for what that would specifically require for this AIR.
           </p>
         </Section>
 

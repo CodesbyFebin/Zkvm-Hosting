@@ -56,6 +56,21 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.zkvm.host/recursion</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/contributing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/security</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.zkvm.host/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

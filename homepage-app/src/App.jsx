@@ -19,6 +19,9 @@ import OnchainVerifier from './pages/OnchainVerifier';
 import ThreatModel from './pages/ThreatModel';
 import Contracts from './pages/Contracts';
 import Ci from './pages/Ci';
+import Recursion from './pages/Recursion';
+import Contributing from './pages/Contributing';
+import Security from './pages/Security';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -50,6 +53,9 @@ export default function App() {
         <Route path="/threat-model" element={<ThreatModel />} />
         <Route path="/contracts" element={<Contracts />} />
         <Route path="/ci" element={<Ci />} />
+        <Route path="/recursion" element={<Recursion />} />
+        <Route path="/contributing" element={<Contributing />} />
+        <Route path="/security" element={<Security />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

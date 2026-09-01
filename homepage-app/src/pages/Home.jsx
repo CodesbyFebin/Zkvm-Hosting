@@ -16,21 +16,49 @@ const JSON_LD = {
   sameAs: [REPO],
 };
 
-const QUICK_LINKS = [
-  { to: '/getting-started', icon: '▸', label: 'Getting Started', desc: 'Clone, build, prove, verify -- real commands, in order.' },
-  { to: '/architecture', icon: '◫', label: 'Architecture', desc: 'Diagram, invariants, source, tests -- the real AIR explained end to end.' },
-  { to: '/zkasm-spec', icon: '</>', label: '.zkasm Spec', desc: 'The complete real instruction set and the forward-only jump rule, verified against the parser.' },
-  { to: '/features', icon: '✓', label: 'Features', desc: 'Every capability labeled IMPLEMENTED, ROADMAP, or RESEARCH. No marketing fiction.' },
-  { to: '/playground', icon: '▶', label: 'Playground', desc: 'Run a tiny program in your browser and watch the real pipeline stages.' },
-  { to: '/benchmarks', icon: '◆', label: 'Benchmarks', desc: 'Measured proof size, prove time, and verify time -- with methodology.' },
-  { to: '/faq', icon: '?', label: 'FAQ', desc: 'Is this actually zero-knowledge? What is and isn\'t trustless, plainly.' },
-  { to: '/api-reference', icon: '⊞', label: 'API Reference', desc: 'Every HTTP route -- exact request/response fields, verified against the handler source.' },
-  { to: '/mcp', icon: '⌘', label: 'MCP Server', desc: 'The real prove/verify MCP tools, and why they run on their own port.' },
-  { to: '/roadmap', icon: '↻', label: 'Roadmap', desc: 'Loops, then addressable memory, then RV32I -- the real order, mirrored from docs/ROADMAP.md.' },
-  { to: '/threat-model', icon: '⛨', label: 'Threat Model', desc: 'The proof is trustless. The on-chain payment is not -- the exact trust assumption, stated plainly.' },
-  { to: '/onchain-verifier', icon: '⛓', label: 'On-Chain Verifier', desc: 'The five real pieces a trustless on-chain STARK verifier needs, and why none are built yet.' },
-  { to: '/contracts', icon: '§', label: 'Contracts', desc: 'IProofVerifier, AttestedVerifier, UnimplementedStarkVerifier, and what each of the 8 real tests checks.' },
-  { to: '/ci', icon: '⟳', label: 'CI', desc: 'The real GitHub Actions workflow that proves and verifies every example program before a PR merges.' },
+const LINK_GROUPS = [
+  {
+    title: 'Learn',
+    links: [
+      { to: '/getting-started', icon: '▸', label: 'Getting Started', desc: 'Clone, build, prove, verify -- real commands, in order.' },
+      { to: '/architecture', icon: '◫', label: 'Architecture', desc: 'Diagram, invariants, source, tests -- the real AIR explained end to end.' },
+      { to: '/zkasm-spec', icon: '</>', label: '.zkasm Spec', desc: 'The complete real instruction set and the forward-only jump rule.' },
+      { to: '/features', icon: '✓', label: 'Features', desc: 'Every capability labeled IMPLEMENTED, ROADMAP, or RESEARCH.' },
+      { to: '/faq', icon: '?', label: 'FAQ', desc: 'Is this actually zero-knowledge? Plainly answered.' },
+    ],
+  },
+  {
+    title: 'Try It',
+    links: [
+      { to: '/playground', icon: '▶', label: 'Playground', desc: 'Run a tiny program in your browser and watch the real pipeline stages.' },
+      { to: '/benchmarks', icon: '◆', label: 'Benchmarks', desc: 'Measured proof size, prove time, and verify time -- with methodology.' },
+    ],
+  },
+  {
+    title: 'Reference',
+    links: [
+      { to: '/api-reference', icon: '⊞', label: 'API Reference', desc: 'Every HTTP route -- exact request/response fields.' },
+      { to: '/mcp', icon: '⌘', label: 'MCP Server', desc: 'The real prove/verify MCP tools, and why they run on their own port.' },
+      { to: '/contracts', icon: '§', label: 'Contracts', desc: 'IProofVerifier, AttestedVerifier, and the 8 real Foundry tests.' },
+      { to: '/ci', icon: '⟳', label: 'CI', desc: 'The real workflow that proves and verifies every example before a PR merges.' },
+    ],
+  },
+  {
+    title: 'Trust & Roadmap',
+    links: [
+      { to: '/threat-model', icon: '⛨', label: 'Threat Model', desc: 'The proof is trustless. The on-chain payment is not.' },
+      { to: '/onchain-verifier', icon: '⛓', label: 'On-Chain Verifier', desc: 'The five real pieces a trustless verifier needs.' },
+      { to: '/recursion', icon: '∞', label: 'Recursion', desc: 'What recursive compression would take -- research scope, nothing built.' },
+      { to: '/roadmap', icon: '↻', label: 'Roadmap', desc: 'Loops, then addressable memory, then RV32I -- the real order.' },
+    ],
+  },
+  {
+    title: 'Project',
+    links: [
+      { to: '/contributing', icon: '⚒', label: 'Contributing', desc: 'Setup, the real PR checklist, and what this project won\'t take.' },
+      { to: '/security', icon: '⚑', label: 'Security', desc: 'Not audited. What counts as a real finding, and how to disclose it.' },
+    ],
+  },
 ];
 
 export default function Home() {
@@ -169,19 +197,26 @@ export default function Home() {
               ONE REAL BACKEND, <span className="text-[#00ff41]">NO VISION COPY</span>
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {QUICK_LINKS.map(({ to, icon, label, desc }) => (
-              <Link
-                key={to}
-                to={to}
-                className="group border border-[#00ff41]/20 bg-black/50 hover:border-[#00ff41]/50 hover:bg-[#00ff41]/5 transition-all p-6"
-              >
-                <div className="w-12 h-12 border border-[#00ff41]/30 flex items-center justify-center text-[#00ff41] text-xl font-mono mb-4">
-                  {icon}
+          <div className="space-y-12">
+            {LINK_GROUPS.map((group) => (
+              <div key={group.title}>
+                <div className="font-mono text-xs text-violet-300 tracking-widest mb-4">{group.title.toUpperCase()}</div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {group.links.map(({ to, icon, label, desc }) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      className="group border border-[#00ff41]/20 bg-black/50 hover:border-[#00ff41]/50 hover:bg-[#00ff41]/5 transition-all p-6"
+                    >
+                      <div className="w-12 h-12 border border-[#00ff41]/30 flex items-center justify-center text-[#00ff41] text-xl font-mono mb-4">
+                        {icon}
+                      </div>
+                      <h3 className="font-mono font-bold text-white text-sm mb-2 tracking-wider group-hover:text-[#00ff41]">{label} →</h3>
+                      <p className="font-mono text-xs text-gray-500 leading-relaxed">{desc}</p>
+                    </Link>
+                  ))}
                 </div>
-                <h3 className="font-mono font-bold text-white text-sm mb-2 tracking-wider group-hover:text-[#00ff41]">{label} →</h3>
-                <p className="font-mono text-xs text-gray-500 leading-relaxed">{desc}</p>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
