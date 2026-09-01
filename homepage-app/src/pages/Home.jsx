@@ -27,6 +27,10 @@ const QUICK_LINKS = [
   { to: '/api-reference', icon: '⊞', label: 'API Reference', desc: 'Every HTTP route -- exact request/response fields, verified against the handler source.' },
   { to: '/mcp', icon: '⌘', label: 'MCP Server', desc: 'The real prove/verify MCP tools, and why they run on their own port.' },
   { to: '/roadmap', icon: '↻', label: 'Roadmap', desc: 'Loops, then addressable memory, then RV32I -- the real order, mirrored from docs/ROADMAP.md.' },
+  { to: '/threat-model', icon: '⛨', label: 'Threat Model', desc: 'The proof is trustless. The on-chain payment is not -- the exact trust assumption, stated plainly.' },
+  { to: '/onchain-verifier', icon: '⛓', label: 'On-Chain Verifier', desc: 'The five real pieces a trustless on-chain STARK verifier needs, and why none are built yet.' },
+  { to: '/contracts', icon: '§', label: 'Contracts', desc: 'IProofVerifier, AttestedVerifier, UnimplementedStarkVerifier, and what each of the 8 real tests checks.' },
+  { to: '/ci', icon: '⟳', label: 'CI', desc: 'The real GitHub Actions workflow that proves and verifies every example program before a PR merges.' },
 ];
 
 export default function Home() {

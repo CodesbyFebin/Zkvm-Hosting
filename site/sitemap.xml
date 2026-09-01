@@ -36,6 +36,26 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.zkvm.host/threat-model</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/onchain-verifier</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/contracts</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/ci</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.zkvm.host/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

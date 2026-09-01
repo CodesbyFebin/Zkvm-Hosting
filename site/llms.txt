@@ -24,6 +24,10 @@ trust bridge, not a cryptographic on-chain STARK verifier. See /faq and
 - [HTTP API Reference](https://www.zkvm.host/api-reference): every route, exact request/response fields, verified against the handler source
 - [MCP Server](https://www.zkvm.host/mcp): the real prove/verify MCP tools and why they run on their own port
 - [Roadmap](https://www.zkvm.host/roadmap): the real, ordered next steps (loops, then addressable memory, then RV32I) and what's explicitly not built
+- [Threat Model](https://www.zkvm.host/threat-model): the proof is trustless, the on-chain payment is not -- the exact attester-key trust assumption
+- [On-Chain Verifier](https://www.zkvm.host/onchain-verifier): the five real pieces a trustless on-chain STARK verifier needs, and why none are built yet
+- [Contracts](https://www.zkvm.host/contracts): the real Solidity contracts and what each of the 8 real Foundry tests checks
+- [CI](https://www.zkvm.host/ci): the real GitHub Actions workflow that proves and verifies every example program before a PR merges
 - [Features](https://www.zkvm.host/features): every capability labeled by implementation state
 - [Playground](https://www.zkvm.host/playground): simulated in-browser demo of the real opcodes and pipeline stages
 - [Benchmarks](https://www.zkvm.host/benchmarks): measured proof size, verify time, and prove-time scaling, with methodology

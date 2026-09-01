@@ -91,6 +91,8 @@ export default function Faq() {
 
         <div className="mt-12 text-center font-mono text-xs text-gray-500">
           More detail on any of these: <Link to="/architecture" className="text-[#00ff41] underline">Architecture</Link>,{' '}
+          <Link to="/threat-model" className="text-[#00ff41] underline">Threat Model</Link>,{' '}
+          <Link to="/onchain-verifier" className="text-[#00ff41] underline">On-Chain Verifier</Link>,{' '}
           <Link to="/roadmap" className="text-[#00ff41] underline">the real roadmap</Link>, or{' '}
           <a className="text-[#00ff41] underline" href="/blog/">the blog</a>.
         </div>

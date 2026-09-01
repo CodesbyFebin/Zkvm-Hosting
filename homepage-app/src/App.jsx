@@ -15,6 +15,10 @@ import ZkasmSpec from './pages/ZkasmSpec';
 import ApiReference from './pages/ApiReference';
 import Mcp from './pages/Mcp';
 import Roadmap from './pages/Roadmap';
+import OnchainVerifier from './pages/OnchainVerifier';
+import ThreatModel from './pages/ThreatModel';
+import Contracts from './pages/Contracts';
+import Ci from './pages/Ci';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -42,6 +46,10 @@ export default function App() {
         <Route path="/api-reference" element={<ApiReference />} />
         <Route path="/mcp" element={<Mcp />} />
         <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/onchain-verifier" element={<OnchainVerifier />} />
+        <Route path="/threat-model" element={<ThreatModel />} />
+        <Route path="/contracts" element={<Contracts />} />
+        <Route path="/ci" element={<Ci />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

@@ -5,3 +5,6 @@ node_modules/
 # contracts/ (Foundry)
 contracts/out/
 contracts/cache/
+
+# local Claude Code session state, not project content
+.claude/scheduled_tasks.lock
