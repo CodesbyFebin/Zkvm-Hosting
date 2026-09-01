@@ -23,6 +23,7 @@ const LINK_GROUPS = [
       { to: '/getting-started', icon: '▸', label: 'Getting Started', desc: 'Clone, build, prove, verify -- real commands, in order.' },
       { to: '/architecture', icon: '◫', label: 'Architecture', desc: 'Diagram, invariants, source, tests -- the real AIR explained end to end.' },
       { to: '/zkasm-spec', icon: '</>', label: '.zkasm Spec', desc: 'The complete real instruction set and the forward-only jump rule.' },
+      { to: '/examples', icon: '▤', label: 'Examples', desc: 'The three real .zkasm programs -- branching, register state, arithmetic.' },
       { to: '/features', icon: '✓', label: 'Features', desc: 'Every capability labeled IMPLEMENTED, ROADMAP, or RESEARCH.' },
       { to: '/faq', icon: '?', label: 'FAQ', desc: 'Is this actually zero-knowledge? Plainly answered.' },
     ],
@@ -41,6 +42,7 @@ const LINK_GROUPS = [
       { to: '/mcp', icon: '⌘', label: 'MCP Server', desc: 'The real prove/verify MCP tools, and why they run on their own port.' },
       { to: '/contracts', icon: '§', label: 'Contracts', desc: 'IProofVerifier, AttestedVerifier, and the 8 real Foundry tests.' },
       { to: '/ci', icon: '⟳', label: 'CI', desc: 'The real workflow that proves and verifies every example before a PR merges.' },
+      { to: '/cli-reference', icon: '>_', label: 'CLI Reference', desc: 'Every zkvm subcommand -- run, prove, verify, deploy, demo.' },
     ],
   },
   {
@@ -57,6 +59,8 @@ const LINK_GROUPS = [
     links: [
       { to: '/contributing', icon: '⚒', label: 'Contributing', desc: 'Setup, the real PR checklist, and what this project won\'t take.' },
       { to: '/security', icon: '⚑', label: 'Security', desc: 'Not audited. What counts as a real finding, and how to disclose it.' },
+      { to: '/changelog', icon: '≡', label: 'Changelog', desc: 'What actually shipped in v0.1.0, and every real change since.' },
+      { to: '/grant-pitch', icon: '♡', label: 'Grant Pitch', desc: 'The one-page funding case -- what it is, and the four scoped asks.' },
     ],
   },
 ];

@@ -71,6 +71,26 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://www.zkvm.host/cli-reference</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/examples</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/changelog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.zkvm.host/grant-pitch</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://www.zkvm.host/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

@@ -84,7 +84,7 @@ cd .. && ./scripts/onchain_demo.sh`}</Code>
         </Step>
 
         <div className="mt-8 text-center font-mono text-xs text-gray-500">
-          Next: <Link to="/zkasm-spec" className="text-[#00ff41] underline">the .zkasm language spec</Link>, or write your own program and run it through step 2 above.
+          Next: <Link to="/zkasm-spec" className="text-[#00ff41] underline">the .zkasm language spec</Link>, <Link to="/examples" className="text-[#00ff41] underline">real example programs</Link>, or the <Link to="/cli-reference" className="text-[#00ff41] underline">full CLI reference</Link> for every flag.
         </div>
       </div>
     </section>

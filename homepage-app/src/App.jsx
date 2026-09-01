@@ -22,6 +22,10 @@ import Ci from './pages/Ci';
 import Recursion from './pages/Recursion';
 import Contributing from './pages/Contributing';
 import Security from './pages/Security';
+import CliReference from './pages/CliReference';
+import Examples from './pages/Examples';
+import Changelog from './pages/Changelog';
+import GrantPitch from './pages/GrantPitch';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -56,6 +60,10 @@ export default function App() {
         <Route path="/recursion" element={<Recursion />} />
         <Route path="/contributing" element={<Contributing />} />
         <Route path="/security" element={<Security />} />
+        <Route path="/cli-reference" element={<CliReference />} />
+        <Route path="/examples" element={<Examples />} />
+        <Route path="/changelog" element={<Changelog />} />
+        <Route path="/grant-pitch" element={<GrantPitch />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

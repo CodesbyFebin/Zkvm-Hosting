@@ -31,6 +31,10 @@ trust bridge, not a cryptographic on-chain STARK verifier. See /faq and
 - [Recursion](https://www.zkvm.host/recursion): what recursive STARK compression or SNARK wrapping would require for this AIR -- a research scope, nothing built
 - [Contributing](https://www.zkvm.host/contributing): real setup steps, the actual PR checklist, and what this project won't accept
 - [Security](https://www.zkvm.host/security): not audited -- what counts as a real finding and how to disclose responsibly
+- [CLI Reference](https://www.zkvm.host/cli-reference): every zkvm subcommand -- run, prove, verify, deploy, demo -- with exact usage and sample output
+- [Examples](https://www.zkvm.host/examples): the three real .zkasm programs in examples/, verbatim, with what each one exercises
+- [Changelog](https://www.zkvm.host/changelog): real, dated changes -- what shipped in v0.1.0 and what has changed since
+- [Grant Pitch](https://www.zkvm.host/grant-pitch): the one-page funding case for ESP / Protocol Labs / Gitcoin-style programs, every claim checkable against the code
 - [Features](https://www.zkvm.host/features): every capability labeled by implementation state
 - [Playground](https://www.zkvm.host/playground): simulated in-browser demo of the real opcodes and pipeline stages
 - [Benchmarks](https://www.zkvm.host/benchmarks): measured proof size, verify time, and prove-time scaling, with methodology
