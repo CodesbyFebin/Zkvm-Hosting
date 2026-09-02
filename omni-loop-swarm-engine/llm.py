@@ -17,20 +17,27 @@ KILO_FREE_POOL = [
 ]
 
 PROVIDER_MAP = {
+    # A live call against the real endpoint returned 401 Unauthorized even
+    # unauthenticated, so -- despite "free pool" in the name -- this provider
+    # requires a key in practice, same as the others. Set KILO_API_KEY (or
+    # pass api_key per-request) to actually call it.
     "kilo": {
         "base_url": "https://kilocode.ai/api/openrouter/v1",
-        "requires_key": False,
+        "requires_key": True,
         "kind": "openai",
+        "env_key": "KILO_API_KEY",
     },
     "openai": {
         "base_url": "https://api.openai.com/v1",
         "requires_key": True,
         "kind": "openai",
+        "env_key": "OPENAI_API_KEY",
     },
     "anthropic": {
         "base_url": "https://api.anthropic.com/v1",
         "requires_key": True,
         "kind": "anthropic",
+        "env_key": "ANTHROPIC_API_KEY",
     },
 }
 
@@ -58,9 +65,7 @@ def call_llm(prompt, model, api_key="", system="", temperature=0.3, max_tokens=4
     """
     provider_key, model_id, provider = _resolve_provider(model)
 
-    key = api_key
-    if not key and provider_key == "openai":
-        key = os.environ.get("OPENAI_API_KEY", "")
+    key = api_key or os.environ.get(provider["env_key"], "")
 
     if provider["requires_key"] and not key:
         raise ValueError(

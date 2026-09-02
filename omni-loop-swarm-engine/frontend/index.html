@@ -4,9 +4,81 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Omni-Loop Swarm Engine</title>
+    <meta
+      name="description"
+      content="A Builder -> Reviewer -> Remediation loop for LLMs: run one model, or a swarm of models in parallel that build, review, and fix each other's work, with an optional Arbiter to pick the best result."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://swarm.zkvm.host/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://swarm.zkvm.host/" />
+    <meta property="og:title" content="Omni-Loop Swarm Engine" />
+    <meta
+      property="og:description"
+      content="Builder -> Reviewer -> Remediation, across a single model or a swarm of models running in parallel. Open source, self-hosted."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Omni-Loop Swarm Engine" />
+    <meta
+      name="twitter:description"
+      content="Builder -> Reviewer -> Remediation, across a single model or a swarm of models running in parallel."
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Omni-Loop Swarm Engine",
+        "url": "https://swarm.zkvm.host/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any (Docker)",
+        "description": "A Flask + React reference implementation of a Builder -> Reviewer -> Remediation loop for LLMs, runnable against a single model or a swarm of models in parallel, with an optional Arbiter to pick a winner among candidates that passed review.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      This is a client-rendered SPA, not server-rendered -- a crawler or
+      answer-engine fetcher that doesn't execute JavaScript would otherwise
+      see an empty page. This noscript block, plus the meta/JSON-LD above,
+      is delivered directly in the HTML Flask serves (no JS required), which
+      covers the same real goal (machine-readable content on first fetch)
+      without a framework migration to true SSR -- disproportionate for a
+      one-page internal tool.
+    -->
+    <noscript>
+      <main style="font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; color: #111">
+        <h1>Omni-Loop Swarm Engine</h1>
+        <p>
+          A Builder &rarr; Reviewer &rarr; Remediation loop for LLMs. This UI needs JavaScript to run
+          interactively, but here is what it does:
+        </p>
+        <ul>
+          <li><strong>Single mode</strong>: one model builds a solution, no review loop.</li>
+          <li>
+            <strong>Swarm mode</strong>: every selected model independently builds a solution in parallel, each
+            gets reviewed by a different model in the swarm (round-robin, never itself, never a model that has
+            already failed), and revises based on feedback for up to a configurable number of iterations.
+          </li>
+          <li>
+            <strong>Arbiter mode</strong>: swarm mode, then one designated model compares every candidate that
+            passed review and picks a winner with reasoning.
+          </li>
+        </ul>
+        <p>
+          API: <code>GET /api/health</code>, <code>POST /api/execute</code> (returns a job id),
+          <code>GET /api/jobs/&lt;id&gt;</code> (poll for the result). Source and full documentation are in the
+          project's <code>README.md</code>.
+        </p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Header from './Header.jsx'
 import { usePersistedSettings } from './usePersistedSettings.js'
 
@@ -58,13 +58,38 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
+  const pollTimeoutRef = useRef(null)
 
   useEffect(() => {
     fetch('/api/health')
       .then((r) => r.json())
       .then((data) => setFreeModels(data.free_models || []))
       .catch(() => setError('Could not reach the backend at /api/health -- is Flask running?'))
+
+    return () => {
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
+    }
   }, [])
+
+  const pollJob = (jobId) => {
+    fetch(`/api/jobs/${jobId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.status === 'done') {
+          setResult(data.result)
+          setLoading(false)
+        } else if (data.status === 'error') {
+          setError(data.error || 'The job failed.')
+          setLoading(false)
+        } else {
+          pollTimeoutRef.current = setTimeout(() => pollJob(jobId), 1200)
+        }
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }
 
   const toggleModel = (model) => {
     const set = new Set(settings.models)
@@ -118,10 +143,12 @@ export default function App() {
       if (!res.ok) {
         throw new Error(data.error || `Request failed with status ${res.status}`)
       }
-      setResult(data)
+      // /api/execute returns {job_id, status} immediately -- the actual run
+      // happens in a background thread, so poll for the result instead of
+      // expecting it in this response.
+      pollJob(data.job_id)
     } catch (err) {
       setError(err.message)
-    } finally {
       setLoading(false)
     }
   }

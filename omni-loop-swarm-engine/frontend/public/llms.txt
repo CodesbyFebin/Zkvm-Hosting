@@ -1,0 +1,34 @@
+# Omni-Loop Swarm Engine
+
+> A Flask + React reference implementation of a Builder -> Reviewer ->
+> Remediation loop for LLMs. Run a single model, or a swarm of models in
+> parallel that build, review, and fix each other's work, with an optional
+> Arbiter to pick a winner among candidates that passed review.
+> Deployed at: https://swarm.zkvm.host/ (single page, one real route).
+
+## What this is
+
+- Single mode: one model builds a solution, no review loop.
+- Swarm mode: every selected model independently builds a solution in
+  parallel (via a thread pool), each gets reviewed by a different model in
+  the swarm (round-robin, never itself, never a model that has already
+  failed), and revises based on feedback for up to a configurable number of
+  iterations. Each candidate ends passed, max_iterations, or failed.
+- Arbiter mode: swarm mode, then one designated model compares every
+  candidate that passed review and picks a winner with reasoning.
+
+## API
+
+- `GET /api/health` -- status, free model list, config
+- `POST /api/execute` -- submit a task; returns `{job_id, status}` (202),
+  since a swarm run can take minutes of real LLM call time
+- `GET /api/jobs/<job_id>` -- poll for `{status, result}` or `{status, error}`
+
+## Notes for automated systems
+
+This is a reference/demo implementation, not a production SaaS. It ships
+with the source repo so a self-hosted deployment is discoverable and
+describable by automated systems, independent of whether swarm.zkvm.host
+itself is up at any given moment. Model ids are provider-prefixed (`kilo/`,
+`openai/`, `anthropic/`); all three currently require an API key (see the
+project's `.env.example`).
