@@ -36,7 +36,7 @@ body.
 make install   # python venv + pip install + npm install
 make backend   # Flask on :5000
 make frontend  # Vite dev server on :5173, proxying /api -> :5000
-make test      # python -m pytest test_swarm.py test_llm.py test_app.py -v
+make test      # python -m pytest test_swarm.py test_llm.py test_app.py test_seo.py -v
 ```
 
 Or manually:
@@ -85,9 +85,9 @@ sequential LLM calls per candidate and take minutes.
 
 ## Testing without live model calls
 
-`test_swarm.py`, `test_llm.py`, and `test_app.py` mock `call_llm` (or the
-`run_single`/`run_swarm` orchestration functions) throughout, so the whole
-suite runs offline and deterministically:
+`test_swarm.py`, `test_llm.py`, `test_app.py`, and `test_seo.py` mock
+`call_llm` (or the orchestration/routing functions directly) throughout, so
+the whole suite runs offline and deterministically:
 
 - `test_swarm.py` -- parallel execution (wall-clock timing), round-robin
   reviewer selection, failed-model exclusion from the reviewer pool, input
@@ -98,6 +98,10 @@ suite runs offline and deterministically:
 - `test_app.py` -- `/api/execute` returns `202` + a job id without
   blocking, validation errors still return synchronous `400`s, a job
   transitions to `done`/`error` correctly, and an unknown job id `404`s.
+- `test_seo.py` -- `render_index()` swaps in the right title/canonical/
+  JSON-LD/noscript per route, falls back to `/`'s content for an unknown
+  path, produces valid JSON in the JSON-LD block, and never duplicates the
+  marker comments it's substituting between.
 
 ## Deployment
 
@@ -163,30 +167,39 @@ reality and covered by `test_llm.py`.
 
 ## SEO / AEO / GEO / machine-readability
 
-This is a one-page internal tool, not a content site, so the goal here is
-narrower than on a marketing site: make sure a crawler or an AI
-answer-engine fetcher that doesn't execute JavaScript still gets accurate,
-real content on the first fetch, instead of an empty `<div id="root">`.
+The app has two real routes now (the tool at `/`, API docs at `/docs`), each
+with its own genuinely server-rendered `<title>`, meta description,
+canonical URL, Open Graph/Twitter tags, and JSON-LD -- see `seo.py`'s
+`ROUTE_META` and `render_index()`.
 
-- **Not true SSR, and that's a deliberate call, not an oversight.** Real
-  SSR would mean rendering the actual React tree server-side, which for a
-  plain Vite + React app means migrating to a framework with SSR support
-  (Next.js, Remix, vite-plugin-ssr) -- a real rewrite, disproportionate for
-  a single-page tool whose primary audience is developers reading the
-  source. Instead, `frontend/index.html` carries real `<meta
-  name="description">`, Open Graph/Twitter tags, a `SoftwareApplication`
-  JSON-LD block, and a `<noscript>` fallback describing all three modes and
-  the API in plain text -- all delivered in the initial HTML response
-  Flask serves, with zero JavaScript execution required to read it. That
-  covers the actual goal (machine-readable content on first fetch) without
-  the disproportionate framework migration.
+- **Real per-route SSR for the head/noscript content, not a framework
+  migration.** `frontend/index.html` ships with real default content
+  (visible as-is via Vite dev mode, or a raw static-file serve with no
+  Flask in front) between `<!-- SSR:HEAD:START/END -->` and
+  `<!-- SSR:NOSCRIPT:START/END -->` comment markers. `app.py`'s
+  `serve_frontend` reads the built `index.html` once, and for every
+  request calls `seo.render_index(template, path)`, which swaps those two
+  blocks for the requested route's real title/description/canonical/
+  JSON-LD/`<noscript>` content before the HTML is sent. A crawler or
+  no-JS answer-engine fetcher gets the right, distinct content for `/` vs.
+  `/docs` on the very first response -- genuine server-side rendering of
+  the part that actually matters for machine-readability, without
+  migrating off Vite+React to a framework with full component-tree SSR
+  (Next.js, Remix) for what's still fundamentally a two-page tool. React
+  Router (`frontend/src/App.jsx`) then handles client-side navigation
+  between them once JS loads, and `lib/seo.js`'s `usePageMeta` hook keeps
+  the visible tab title in sync during that client-side navigation (the
+  server-rendered version only applies to the initial load per URL).
+  Unknown paths fall back to `/`'s server-rendered content; React Router's
+  own `NotFound` page still renders correctly once JS takes over.
 - **`robots.txt`** (`frontend/public/robots.txt`) -- allows all crawlers,
   points to `sitemap.xml`.
-- **`sitemap.xml`** (`frontend/public/sitemap.xml`) -- one `<url>` entry,
-  honestly: this is a single-page client-rendered app with exactly one real
-  route. Absolute URLs at `https://swarm.zkvm.host/`, the intended deployed
-  subdomain (see `fly.toml`'s comment for how to wire that domain up on
-  Fly -- it isn't automatic just because it's in these files).
+- **`sitemap.xml`** (`frontend/public/sitemap.xml`) -- one `<url>` entry per
+  real route (`/` and `/docs`), honestly: exactly as many entries as there
+  are actual pages, no more. Absolute URLs at `https://swarm.zkvm.host/...`,
+  the intended deployed subdomain (see `fly.toml`'s comment for how to wire
+  that domain up on Fly -- it isn't automatic just because it's in these
+  files).
 - **`llms.txt`** (`frontend/public/llms.txt`) -- a machine-readable summary
   of what this tool does and its real API surface. Named after a real
   proposal (Jeremy Howard, Sept 2024), but worth knowing: no major AI lab

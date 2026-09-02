@@ -15,7 +15,7 @@ build:
 	cd frontend && npm run build
 
 test:
-	python3 -m pytest test_swarm.py test_llm.py test_app.py -v
+	python3 -m pytest test_swarm.py test_llm.py test_app.py test_seo.py -v
 
 docker-build:
 	docker build -t omni-loop-swarm-engine .

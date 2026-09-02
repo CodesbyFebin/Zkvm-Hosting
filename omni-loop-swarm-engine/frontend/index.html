@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Everything between SSR:HEAD:START/END is replaced per-route by
+      app.py's render_index() -- see ROUTE_META there. This default content
+      is what Vite dev mode and a raw static-file serve show for "/"; it's
+      real content, not a placeholder, so nothing looks broken if Flask
+      isn't the one serving it.
+    -->
+    <!-- SSR:HEAD:START -->
     <title>Omni-Loop Swarm Engine</title>
     <meta
       name="description"
@@ -41,18 +49,17 @@
         }
       }
     </script>
+    <!-- SSR:HEAD:END -->
   </head>
   <body>
     <div id="root"></div>
     <!--
-      This is a client-rendered SPA, not server-rendered -- a crawler or
-      answer-engine fetcher that doesn't execute JavaScript would otherwise
-      see an empty page. This noscript block, plus the meta/JSON-LD above,
-      is delivered directly in the HTML Flask serves (no JS required), which
-      covers the same real goal (machine-readable content on first fetch)
-      without a framework migration to true SSR -- disproportionate for a
-      one-page internal tool.
+      A crawler or answer-engine fetcher that doesn't execute JavaScript
+      would otherwise see an empty page -- this noscript block (also
+      replaced per-route by render_index()) is delivered directly in the
+      HTML Flask serves, no JS required.
     -->
+    <!-- SSR:NOSCRIPT:START -->
     <noscript>
       <main style="font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; color: #111">
         <h1>Omni-Loop Swarm Engine</h1>
@@ -79,6 +86,7 @@
         </p>
       </main>
     </noscript>
+    <!-- SSR:NOSCRIPT:END -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

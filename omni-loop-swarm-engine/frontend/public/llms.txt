@@ -4,7 +4,12 @@
 > Remediation loop for LLMs. Run a single model, or a swarm of models in
 > parallel that build, review, and fix each other's work, with an optional
 > Arbiter to pick a winner among candidates that passed review.
-> Deployed at: https://swarm.zkvm.host/ (single page, one real route).
+> Deployed at: https://swarm.zkvm.host/
+
+## Pages
+
+- [Tool](https://swarm.zkvm.host/): the app itself -- task input, mode toggle, live candidate grid
+- [API Reference](https://swarm.zkvm.host/docs): exact request/response shapes for every endpoint
 
 ## What this is
 

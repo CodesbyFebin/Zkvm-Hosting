@@ -27,6 +27,42 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.top-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-link {
+  color: #9aa0ac;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+.nav-link:hover {
+  color: #e4e6eb;
+}
+
+.nav-link.active {
+  background: #1a1d24;
+  color: #6ee7b7;
+}
+
+.tool-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 28px 0;
+}
+
+.tool-toolbar-label {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .brand-mark {
@@ -354,4 +390,101 @@ button[type='submit']:disabled {
   border-radius: 8px;
   padding: 12px;
   background: #171a20;
+}
+
+.docs-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 28px 64px;
+  line-height: 1.6;
+}
+
+.docs-page h1 {
+  margin: 20px 0 8px;
+  font-size: 26px;
+}
+
+.docs-dek {
+  color: #9aa0ac;
+  font-size: 14px;
+  margin: 0 0 32px;
+}
+
+.back-link {
+  color: #6ee7b7;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.docs-page section {
+  border-top: 1px solid #23262e;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.docs-page section:first-of-type {
+  border-top: none;
+  margin-top: 0;
+}
+
+.docs-page h2 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+
+.docs-page h2 code {
+  font-size: 15px;
+}
+
+.docs-page p {
+  color: #c4c8d1;
+  font-size: 14px;
+}
+
+.docs-page code {
+  background: #1a1d24;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+
+.docs-page pre {
+  background: #0f1115;
+  border: 1px solid #23262e;
+  border-radius: 8px;
+  padding: 14px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.docs-page pre code {
+  background: none;
+  padding: 0;
+}
+
+.arrow-line {
+  font-family: monospace;
+}
+
+.docs-page ul {
+  color: #c4c8d1;
+  font-size: 14px;
+  padding-left: 20px;
+}
+
+.docs-page ul li {
+  margin-bottom: 10px;
+}
+
+.docs-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #23262e;
+  color: #6b7280;
+  font-size: 13px;
 }

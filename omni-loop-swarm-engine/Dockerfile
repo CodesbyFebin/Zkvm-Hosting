@@ -15,7 +15,7 @@ RUN groupadd --system appuser && useradd --system --create-home --gid appuser ap
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY config.py llm.py swarm.py jobs.py app.py ./
+COPY config.py llm.py swarm.py jobs.py seo.py app.py ./
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
 ENV PORT=5000 \

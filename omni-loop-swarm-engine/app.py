@@ -11,12 +11,13 @@ import os
 import threading
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 import jobs
 from config import get_config
 from llm import get_free_models
+from seo import render_index
 from swarm import run_single, run_swarm
 
 FRONTEND_DIST = Path(__file__).parent / "frontend" / "dist"
@@ -100,6 +101,7 @@ def get_job(job_id):
 
 
 if _has_frontend_build:
+    _INDEX_TEMPLATE = (FRONTEND_DIST / "index.html").read_text()
 
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
@@ -107,7 +109,10 @@ if _has_frontend_build:
         candidate = FRONTEND_DIST / path
         if path and candidate.is_file():
             return send_from_directory(str(FRONTEND_DIST), path)
-        return send_from_directory(str(FRONTEND_DIST), "index.html")
+
+        request_path = ("/" + path).rstrip("/") or "/"
+        html = render_index(_INDEX_TEMPLATE, request_path)
+        return Response(html, mimetype="text/html")
 
 
 if __name__ == "__main__":

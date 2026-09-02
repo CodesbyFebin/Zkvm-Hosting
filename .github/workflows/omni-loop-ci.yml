@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python -m pytest test_swarm.py test_llm.py test_app.py -v
+      - run: python -m pytest test_swarm.py test_llm.py test_app.py test_seo.py -v
 
   frontend-build:
     runs-on: ubuntu-latest
