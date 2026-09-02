@@ -1,0 +1,357 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f1115;
+  color: #e4e6eb;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid #23262e;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  font-size: 28px;
+  color: #6ee7b7;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.tagline {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #9aa0ac;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 6px;
+  background: #1a1d24;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.mode-button {
+  background: transparent;
+  border: none;
+  color: #9aa0ac;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.mode-button.active {
+  background: #2b2f3a;
+  color: #6ee7b7;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  padding: 24px 28px;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #171a20;
+  border: 1px solid #23262e;
+  border-radius: 10px;
+  padding: 20px;
+  align-self: start;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #c4c8d1;
+}
+
+.optional {
+  color: #6b7280;
+  font-weight: normal;
+  font-size: 11px;
+}
+
+textarea,
+input[type='text'],
+input[type='password'],
+input[type='number'],
+select {
+  background: #0f1115;
+  border: 1px solid #2b2f3a;
+  border-radius: 6px;
+  color: #e4e6eb;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+fieldset {
+  border: 1px solid #2b2f3a;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+legend {
+  font-size: 12px;
+  color: #9aa0ac;
+  padding: 0 6px;
+}
+
+.model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.model-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.row > label {
+  flex: 1;
+}
+
+button[type='submit'] {
+  background: #10b981;
+  color: #06120c;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-banner {
+  color: #f87171;
+  font-size: 13px;
+  margin: 0;
+}
+
+.results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.summary-bar {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #c4c8d1;
+}
+
+.pass-count {
+  color: #6ee7b7;
+}
+
+.fail-count {
+  color: #f87171;
+}
+
+.arbiter-box {
+  background: #171a20;
+  border: 1px solid #6ee7b7;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.arbiter-box h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #6ee7b7;
+}
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.candidate-card {
+  background: #171a20;
+  border: 1px solid #2b2f3a;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 13px;
+}
+
+.candidate-card.status-passed {
+  border-color: #10b981;
+}
+
+.candidate-card.status-failed {
+  border-color: #f87171;
+}
+
+.candidate-card.status-max_iterations {
+  border-color: #fbbf24;
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.candidate-model {
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.status-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-badge.status-passed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+.status-badge.status-failed {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.status-badge.status-max_iterations {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.candidate-meta {
+  color: #9aa0ac;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.candidate-error {
+  color: #f87171;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #6ee7b7;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-list li {
+  border-top: 1px solid #2b2f3a;
+  padding-top: 8px;
+  font-size: 12px;
+}
+
+.history-list p {
+  margin: 4px 0 0;
+  color: #c4c8d1;
+}
+
+.verdict-pass {
+  color: #6ee7b7;
+}
+
+.verdict-fail {
+  color: #f87171;
+}
+
+.output-details {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.output-details summary {
+  cursor: pointer;
+  color: #9aa0ac;
+}
+
+.output-details pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #0f1115;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.winner-output {
+  grid-column: 1 / -1;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  padding: 12px;
+  background: #171a20;
+}
