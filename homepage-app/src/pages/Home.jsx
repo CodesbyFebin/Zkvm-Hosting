@@ -52,6 +52,7 @@ const LINK_GROUPS = [
       { to: '/onchain-verifier', icon: '⛓', label: 'On-Chain Verifier', desc: 'The five real pieces a trustless verifier needs.' },
       { to: '/recursion', icon: '∞', label: 'Recursion', desc: 'What recursive compression would take -- research scope, nothing built.' },
       { to: '/roadmap', icon: '↻', label: 'Roadmap', desc: 'Loops, then addressable memory, then RV32I -- the real order.' },
+      { to: '/capabilities', icon: '☰', label: 'Capability Status', desc: '20 real capabilities, searchable and filterable -- implemented, roadmap, research, or not planned.' },
     ],
   },
   {

@@ -26,6 +26,7 @@ import CliReference from './pages/CliReference';
 import Examples from './pages/Examples';
 import Changelog from './pages/Changelog';
 import GrantPitch from './pages/GrantPitch';
+import Capabilities from './pages/Capabilities';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/examples" element={<Examples />} />
         <Route path="/changelog" element={<Changelog />} />
         <Route path="/grant-pitch" element={<GrantPitch />} />
+        <Route path="/capabilities" element={<Capabilities />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
